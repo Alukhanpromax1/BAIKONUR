@@ -978,7 +978,7 @@ input[type='range']::-moz-range-thumb {
 .fallback-note {
   position: absolute;
   left: 50%;
-  bottom: 6px;
+  top: calc(var(--topbar) + 6px);
   transform: translateX(-50%);
   z-index: 2;
   padding: 3px 10px;
