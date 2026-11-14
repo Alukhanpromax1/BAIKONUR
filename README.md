@@ -12,6 +12,17 @@ mission in accelerated time, and then read a report that explains exactly what y
 > KAZMARS-1 is fictional. It is not a NASA mission and not a mission of any government.
 > This is an educational simulator, not spacecraft design software.
 
+![Title screen](docs/screenshots/01-title.jpg)
+
+| | |
+| --- | --- |
+| ![Design bay](docs/screenshots/02-design-bay.jpg) | ![Launch plan](docs/screenshots/03-launch-plan.jpg) |
+| ![Evidence investigation](docs/screenshots/04-evidence.jpg) | ![Mars operations](docs/screenshots/05-mars-operations.jpg) |
+
+![Mission debrief](docs/screenshots/06-debrief.jpg)
+
+_Screenshots taken from the running game. All 3D graphics are procedural; no image assets are used._
+
 ## Play
 
 ```bash

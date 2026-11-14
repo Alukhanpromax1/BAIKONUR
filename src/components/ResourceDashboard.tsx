@@ -258,7 +258,7 @@ export function ResourceDashboard({ evaluation, context }: { evaluation: DesignE
           value={`${Math.round(e.mass.wetKg)}`}
           unit={`/ ${e.mass.capacityKg} kg`}
           fill={e.mass.wetKg / e.mass.capacityKg}
-          note={!e.mass.tankOk ? 'Tanks too small for this orbit' : e.mass.marginKg >= 0 ? `${Math.round(e.mass.marginKg)} kg launch capacity left` : `${Math.round(-e.mass.marginKg)} kg too heavy`}
+          note={!e.mass.tankOk ? 'Tanks too small for this orbit' : e.mass.marginKg >= 0 ? `${Math.round(e.mass.marginKg)} kg to spare` : `${Math.round(-e.mass.marginKg)} kg too heavy`}
           status={e.status.mass}
           open={open === 'mass'}
           onToggle={() => toggle('mass')}
@@ -282,7 +282,7 @@ export function ResourceDashboard({ evaluation, context }: { evaluation: DesignE
           value={`${e.budget.totalCr}`}
           unit={`/ ${e.budget.capCr} cr`}
           fill={e.budget.totalCr / e.budget.capCr}
-          note={e.budget.ok ? `${e.budget.remainingCr} credits in reserve` : `${-e.budget.remainingCr} credits over`}
+          note={e.budget.ok ? `${e.budget.remainingCr} credits left` : `${-e.budget.remainingCr} credits over`}
           status={e.status.budget}
           open={open === 'budget'}
           onToggle={() => toggle('budget')}
@@ -294,7 +294,7 @@ export function ResourceDashboard({ evaluation, context }: { evaluation: DesignE
           value={`${e.data.generatedMbPerDay}`}
           unit="Mb/day"
           fill={e.data.blackoutVolumeMb / e.data.capacityMb}
-          note={`Recorder holds ${e.data.bufferDays.toFixed(0)} days`}
+          note={`Recorder: ${e.data.bufferDays.toFixed(0)} days`}
           status={e.status.data}
           open={open === 'data'}
           onToggle={() => toggle('data')}
@@ -306,7 +306,7 @@ export function ResourceDashboard({ evaluation, context }: { evaluation: DesignE
           value={`${Math.round(e.comms.avgDownlinkMbPerDay)}`}
           unit="Mb/day"
           fill={1 / e.comms.coverage}
-          note={e.comms.coverage >= 1 ? `Link carries ${e.comms.coverage.toFixed(1)}× the data` : `Only ${Math.round(e.comms.coverage * 100)} % of the data fits`}
+          note={e.comms.coverage >= 1 ? `Link: ${e.comms.coverage.toFixed(1)}× the data` : `Only ${Math.round(e.comms.coverage * 100)} % fits`}
           status={e.status.comms}
           open={open === 'comms'}
           onToggle={() => toggle('comms')}
@@ -318,7 +318,7 @@ export function ResourceDashboard({ evaluation, context }: { evaluation: DesignE
           value={`${e.timeline.scienceDays}`}
           unit="science days"
           fill={e.timeline.scienceDays / 687}
-          note={`${e.timeline.totalDays} days launch to finish`}
+          note={`${e.timeline.totalDays} days in total`}
           status={e.status.duration}
           open={open === 'duration'}
           onToggle={() => toggle('duration')}
