@@ -133,7 +133,10 @@
   gap: 3px;
   padding: 10px 10px 4px 0;
 }
-.stat .mono {
+.stat {
+  align-content: start;
+}
+.stat > .mono:not(.xs) {
   font-size: 15px;
 }
 
@@ -799,11 +802,17 @@ input[type='range']::-moz-range-thumb {
   inset: 0;
   z-index: 20;
   display: grid;
-  place-items: center;
+  /* Decisions open beside the planet, so Mars and the left-hand gauges stay in view. */
+  align-items: center;
+  justify-items: end;
   padding: 16px;
-  background: rgba(3, 6, 12, 0.5);
+  background: linear-gradient(270deg, rgba(3, 6, 12, 0.72) 0%, rgba(3, 6, 12, 0.3) 46%, transparent 62%);
   pointer-events: auto !important;
   animation: fade 0.3s ease;
+}
+.ops__modal .dialog {
+  width: min(520px, 100%);
+  max-height: 100%;
 }
 
 /* ── Debrief ── */
@@ -1060,6 +1069,17 @@ input[type='range']::-moz-range-thumb {
   .workbench__head .title {
     font-size: 19px;
   }
+  .workbench__head p {
+    display: none;
+  }
+  .science .eyebrow {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .science .mono {
+    white-space: nowrap;
+  }
   .workbench__bottom {
     grid-column: 1;
     grid-row: 2;
@@ -1139,6 +1159,10 @@ input[type='range']::-moz-range-thumb {
     grid-column: 2;
     grid-row: 4;
   }
+  .ops__modal {
+    justify-items: center;
+    background: rgba(3, 6, 12, 0.6);
+  }
   .hud {
     padding: 10px;
   }
@@ -1212,7 +1236,14 @@ input[type='range']::-moz-range-thumb {
     grid-template-columns: 1fr;
   }
   .intro__content {
-    bottom: 120px;
+    bottom: 132px;
+  }
+  .intro__title {
+    font-size: 9.4vw;
+  }
+  .intro__tagline {
+    font-size: 10px;
+    letter-spacing: 0.22em !important;
   }
   .chart {
     height: 200px;

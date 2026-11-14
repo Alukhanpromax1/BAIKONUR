@@ -1086,16 +1086,35 @@ button.tag:hover {
   .brand__text {
     display: none;
   }
-  .stage::after {
-    width: 6px;
-    margin: 0 2px;
+  /* Phones: show only the current stage ("2 DESIGN") so the tools on the right stay reachable. */
+  .stages {
+    margin: 0;
   }
-  .lt-chip__label {
+  .stage:not(.stage--current) {
+    display: none;
+  }
+  .stage::after {
+    display: none;
+  }
+  .stage--current .stage__label {
+    display: inline;
+  }
+  .lt-chip__label,
+  .lt-chip .tag {
     display: none;
   }
   .lt-chip {
     padding: 0 8px;
     margin-right: 0;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+  .icon-btn {
+    width: 38px;
+  }
+  .topbar__right {
+    margin-left: auto !important;
+    gap: 0;
   }
   .hide-mobile {
     display: none !important;

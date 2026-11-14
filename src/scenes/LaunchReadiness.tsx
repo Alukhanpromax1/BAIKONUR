@@ -401,7 +401,7 @@ function EvidenceBoard({ telemetry, viewed, onView, compact = false }: { telemet
                 <LineChart data={data} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
                   <CartesianGrid stroke={GRID} vertical={false} />
                   <XAxis dataKey="time" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} unit=" s" interval={19} />
-                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[15.6, 19]} unit=" bar" width={62} />
+                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[15.6, 19.2]} ticks={[16, 16.8, 17.5, 18.2, 19]} unit=" bar" width={62} />
                   <Tooltip {...TOOLTIP} labelFormatter={(v) => `t = ${v} s`} />
                   <Legend wrapperStyle={{ fontFamily: 'IBM Plex Mono', fontSize: 11 }} />
                   <ReferenceLine y={P.low} stroke="#FFB84D" strokeDasharray="4 4" label={{ value: 'lower limit', position: 'insideBottomLeft', ...AXIS, fill: '#FFB84D' }} />
@@ -416,7 +416,7 @@ function EvidenceBoard({ telemetry, viewed, onView, compact = false }: { telemet
                 <LineChart data={data} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
                   <CartesianGrid stroke={GRID} vertical={false} />
                   <XAxis dataKey="time" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} unit=" s" interval={19} />
-                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[13, 29]} unit=" °C" width={62} />
+                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[12, 29]} ticks={[14, 19.5, 25]} unit=" °C" width={62} />
                   <Tooltip {...TOOLTIP} labelFormatter={(v) => `t = ${v} s`} />
                   <Legend wrapperStyle={{ fontFamily: 'IBM Plex Mono', fontSize: 11 }} />
                   <ReferenceLine y={T.high} stroke="#FFB84D" strokeDasharray="4 4" />
@@ -444,7 +444,7 @@ function EvidenceBoard({ telemetry, viewed, onView, compact = false }: { telemet
                 <LineChart data={data} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
                   <CartesianGrid stroke={GRID} vertical={false} />
                   <XAxis dataKey="time" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} unit=" s" interval={19} />
-                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[15.6, 19]} unit=" bar" width={62} />
+                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[15.6, 19.2]} ticks={[16, 16.8, 17.5, 18.2, 19]} unit=" bar" width={62} />
                   <Tooltip {...TOOLTIP} labelFormatter={(v) => `t = ${v} s`} />
                   <Legend wrapperStyle={{ fontFamily: 'IBM Plex Mono', fontSize: 11 }} />
                   <ReferenceLine y={P.low} stroke="#FFB84D" strokeDasharray="4 4" />
@@ -494,7 +494,7 @@ function EvidenceBoard({ telemetry, viewed, onView, compact = false }: { telemet
                 <LineChart data={data} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
                   <CartesianGrid stroke={GRID} vertical={false} />
                   <XAxis dataKey="time" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} unit=" s" interval={19} />
-                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[15.6, 19]} unit=" bar" width={62} />
+                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[15.6, 19.2]} ticks={[16, 16.8, 17.5, 18.2, 19]} unit=" bar" width={62} />
                   <Tooltip {...TOOLTIP} labelFormatter={(v) => `t = ${v} s`} />
                   <Legend wrapperStyle={{ fontFamily: 'IBM Plex Mono', fontSize: 11 }} />
                   <ReferenceLine y={P.low} stroke="#FFB84D" strokeDasharray="4 4" />

@@ -26,15 +26,17 @@ export interface Rig {
   shiftY: number;
   /** Same, used on narrow screens where the controls sit below the 3D view. */
   shiftYMobile: number;
+  /** How much farther back the camera sits on narrow screens. */
+  mobileDistance: number;
 }
 
 export const RIGS: Record<Exclude<SceneId, 'intro'>, Rig> = {
-  briefing: { position: [50, 3, 4], target: [70, 0, -20], fov: 38, shiftX: -0.2, shiftY: 0, shiftYMobile: 0.18 },
-  designer: { position: [7.6, 4.1, 10.6], target: [0, 0, 0], fov: 36, shiftX: 0.15, shiftY: 0.07, shiftYMobile: 0.27 },
-  launch: { position: [62, 15, 19], target: [70, 0, -20], fov: 38, shiftX: 0.17, shiftY: 0.04, shiftYMobile: 0.27 },
-  readiness: { position: [-65, 1.5, -12.5], target: [-70, -4, -30], fov: 40, shiftX: -0.26, shiftY: 0, shiftYMobile: 0.24 },
-  operations: { position: [70, 13, 24], target: [70, 0, -20], fov: 38, shiftX: 0, shiftY: 0.02, shiftYMobile: 0.2 },
-  debrief: { position: [44, 5, 12], target: [70, 0, -20], fov: 36, shiftX: -0.24, shiftY: 0, shiftYMobile: 0.22 },
+  briefing: { position: [50, 3, 4], target: [70, 0, -20], fov: 38, shiftX: -0.2, shiftY: 0, shiftYMobile: 0.18, mobileDistance: 1.5 },
+  designer: { position: [7.6, 4.1, 10.6], target: [0, 0, 0], fov: 36, shiftX: 0.15, shiftY: 0.07, shiftYMobile: 0.27, mobileDistance: 1.75 },
+  launch: { position: [62, 15, 19], target: [70, 0, -20], fov: 38, shiftX: 0.17, shiftY: 0.04, shiftYMobile: 0.27, mobileDistance: 1.5 },
+  readiness: { position: [-65, 1.5, -12.5], target: [-70, -4, -30], fov: 40, shiftX: -0.26, shiftY: 0, shiftYMobile: 0.24, mobileDistance: 1.2 },
+  operations: { position: [70, 13, 24], target: [70, 0, -20], fov: 38, shiftX: 0, shiftY: 0.02, shiftYMobile: 0.2, mobileDistance: 1.35 },
+  debrief: { position: [44, 5, 12], target: [70, 0, -20], fov: 36, shiftX: -0.24, shiftY: 0, shiftYMobile: 0.22, mobileDistance: 1.4 },
 };
 
 export { worldState } from './state';

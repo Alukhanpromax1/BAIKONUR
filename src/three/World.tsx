@@ -25,6 +25,20 @@ const INTRO_LOOK = new THREE.CatmullRomCurve3(
   'catmullrom',
   0.5,
 );
+// Portrait screens are too narrow to hold the desktop framing, so the phone camera ends behind
+// the spacecraft, looking past it toward Mars.
+const INTRO_CAM_M = new THREE.CatmullRomCurve3(
+  [new THREE.Vector3(-34, 9, 34), new THREE.Vector3(-45, 4, 16), new THREE.Vector3(-36, 3, 10), new THREE.Vector3(-28, 4.5, -2)],
+  false,
+  'catmullrom',
+  0.5,
+);
+const INTRO_LOOK_M = new THREE.CatmullRomCurve3(
+  [new THREE.Vector3(-10, 14, -70), new THREE.Vector3(-64, -2, -30), new THREE.Vector3(-22, 0, -8), new THREE.Vector3(20.5, 2, -14)],
+  false,
+  'catmullrom',
+  0.5,
+);
 const INTRO_CRAFT = new THREE.CatmullRomCurve3([new THREE.Vector3(-64, -3, -6), new THREE.Vector3(-44, -1, -4), new THREE.Vector3(-22, 0.6, -6), new THREE.Vector3(0, 1.6, -12)]);
 
 const ease = (t: number) => t * t * (3 - 2 * t);
@@ -45,7 +59,8 @@ function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl |
   }, [scene, controls]);
 
   useFrame((_, rawDt) => {
-    const dt = Math.min(rawDt, 0.05);
+    // Camera moves follow real time (capped), so transitions take the same time on slow machines.
+    const dt = Math.min(rawDt, 0.12);
     const { scene: sc, settings } = useGame.getState();
     const cam = camera as THREE.PerspectiveCamera;
     const mobile = size.width < 900;
@@ -55,14 +70,14 @@ function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl |
 
     if (sc === 'intro') {
       const t = ease(THREE.MathUtils.clamp(worldState.intro, 0, 1));
-      INTRO_CAM.getPoint(t, tmp);
-      INTRO_LOOK.getPoint(t, tmp2);
+      (mobile ? INTRO_CAM_M : INTRO_CAM).getPoint(t, tmp);
+      (mobile ? INTRO_LOOK_M : INTRO_LOOK).getPoint(t, tmp2);
       cam.position.copy(tmp);
       look.current.copy(tmp2);
       cam.lookAt(look.current);
       // As the title arrives, slide the picture up and right so the spacecraft and Mars clear the text.
       sx = mobile ? 0 : -0.1 * t;
-      sy = (mobile ? 0.3 : 0.24) * t;
+      sy = (mobile ? 0.2 : 0.24) * t;
     } else {
       const rig = RIGS[sc];
       fov = rig.fov;
@@ -76,7 +91,7 @@ function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl |
       } else {
         const lambda = settings.reducedMotion ? 60 : 2.6;
         tmp.set(...rig.position);
-        if (mobile) tmp.sub(tmp2.set(...rig.target)).multiplyScalar(1.35).add(tmp2);
+        if (mobile) tmp.sub(tmp2.set(...rig.target)).multiplyScalar(rig.mobileDistance).add(tmp2);
         cam.position.set(damp(cam.position.x, tmp.x, lambda, dt), damp(cam.position.y, tmp.y, lambda, dt), damp(cam.position.z, tmp.z, lambda, dt));
         tmp2.set(...rig.target);
         look.current.set(damp(look.current.x, tmp2.x, lambda, dt), damp(look.current.y, tmp2.y, lambda, dt), damp(look.current.z, tmp2.z, lambda, dt));
@@ -132,7 +147,8 @@ function SpacecraftActor() {
       const t = ease(THREE.MathUtils.clamp(worldState.intro * 1.05, 0, 1));
       INTRO_CRAFT.getPoint(t, g.position);
       // Turns slowly from side-on to facing the camera, so the arrays catch the sunlight at the end.
-      g.rotation.set(0.22 - 0.1 * t, -2.1 + 1.45 * t, 0.42 - 0.26 * t + Math.sin(state.clock.elapsedTime * 0.3) * 0.02);
+      const portrait = state.size.width < 900;
+      g.rotation.set(0.22 - 0.1 * t, -2.1 + (portrait ? 0.9 : 1.45) * t, 0.42 - 0.26 * t + Math.sin(state.clock.elapsedTime * 0.3) * 0.02);
       g.scale.setScalar(1);
     } else if (sc === 'designer') {
       g.position.copy(BAY_POS);
@@ -147,7 +163,8 @@ function SpacecraftActor() {
       // Nadir pointing: the instrument deck (+Z) faces the planet.
       g.lookAt(MARS_POS);
       g.rotateZ(0.4);
-      g.scale.setScalar(sc === 'launch' ? 0.11 : 0.13);
+      // Drawn far larger than life so it can be seen: the scene is not to scale.
+      g.scale.setScalar(sc === 'launch' ? 0.2 : 0.3);
     }
   });
 
@@ -155,7 +172,40 @@ function SpacecraftActor() {
     <group ref={group}>
       <Orbiter selections={selections} deploy={deploy} interactive={scene === 'designer'} shadows={scene === 'designer' && QUALITY[quality].shadows} />
       <CommBeam />
+      <Beacon />
     </group>
+  );
+}
+
+/** A soft halo that makes the tiny spacecraft easy to find when it is in orbit. */
+function Beacon() {
+  const ref = useRef<THREE.Sprite>(null);
+  const texture = useMemo(() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const ctx = c.getContext('2d')!;
+    const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, 'rgba(160,240,255,0.9)');
+    g.addColorStop(0.18, 'rgba(82,215,232,0.35)');
+    g.addColorStop(0.5, 'rgba(82,215,232,0.08)');
+    g.addColorStop(1, 'rgba(82,215,232,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 128, 128);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }, []);
+  useFrame((state) => {
+    const s = ref.current;
+    if (!s) return;
+    const sc = useGame.getState().scene;
+    s.visible = sc === 'launch' || sc === 'operations' || sc === 'debrief' || sc === 'briefing';
+    s.scale.setScalar(13 + Math.sin(state.clock.elapsedTime * 2.2) * 1.5);
+  });
+  return (
+    <sprite ref={ref}>
+      <spriteMaterial map={texture} blending={THREE.AdditiveBlending} depthWrite={false} transparent opacity={0.8} />
+    </sprite>
   );
 }
 
@@ -163,6 +213,8 @@ function SpacecraftActor() {
 function CommBeam() {
   const ref = useRef<THREE.Mesh>(null);
   const mat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#52D7E8', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }), []);
+  // The beam starts at the spacecraft and runs toward Earth (cylinder shifted to start at its base).
+  const geometry = useMemo(() => new THREE.CylinderGeometry(0.09, 0.09, 600, 6, 1, true).translate(0, 300, 0), []);
   const tmp = useMemo(() => new THREE.Vector3(), []);
   const up = useMemo(() => new THREE.Vector3(0, 1, 0), []);
   const q = useMemo(() => new THREE.Quaternion(), []);
@@ -172,7 +224,7 @@ function CommBeam() {
     if (!mesh || !mesh.parent) return;
     const { scene, opsHighlight } = useGame.getState();
     const on = scene === 'operations' && opsHighlight !== 'blackout' && opsHighlight !== 'safe';
-    const target = on ? 0.3 + 0.12 * Math.sin(state.clock.elapsedTime * 5) : 0;
+    const target = on ? 0.22 + 0.1 * Math.sin(state.clock.elapsedTime * 5) : 0;
     mat.opacity += (target - mat.opacity) * Math.min(1, dt * 4);
     mesh.visible = mat.opacity > 0.01;
     if (!mesh.visible) return;
@@ -184,9 +236,7 @@ function CommBeam() {
     mesh.quaternion.copy(pq.multiply(q));
   });
   return (
-    <mesh ref={ref} material={mat}>
-      <cylinderGeometry args={[0.05, 0.05, 420, 6, 1, true]} />
-    </mesh>
+    <mesh ref={ref} material={mat} geometry={geometry} />
   );
 }
 
