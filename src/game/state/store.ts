@@ -137,8 +137,15 @@ export const defaultPlayers = (count: number): Player[] =>
 
 const seed0 = initialSeed();
 
+/** Testing aid: ?scene=designer (etc.) opens the game directly on a scene. */
+function initialScene(): SceneId {
+  const s = params.get('scene');
+  return s && (SCENE_NAMES as string[]).includes(s) ? (s as SceneId) : 'intro';
+}
+const SCENE_NAMES: SceneId[] = ['intro', 'briefing', 'designer', 'launch', 'readiness', 'operations', 'debrief'];
+
 export const useGame = create<GameState>((set, get) => ({
-  scene: 'intro',
+  scene: initialScene(),
   settings: { ...loadJson(SETTINGS_KEY, defaultSettings), ...(params.get('motion') === 'reduced' ? { reducedMotion: true } : {}) },
   players: defaultPlayers(1),
   teamStats: { decisions: 0, fullyDiscussed: 0, unanimous: 0 },

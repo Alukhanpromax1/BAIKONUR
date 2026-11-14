@@ -20,12 +20,12 @@ const INTRO_CAM = new THREE.CatmullRomCurve3(
   0.5,
 );
 const INTRO_LOOK = new THREE.CatmullRomCurve3(
-  [new THREE.Vector3(-10, 14, -70), new THREE.Vector3(-64, -2, -30), new THREE.Vector3(-22, 0, -8), new THREE.Vector3(24, 0, -24)],
+  [new THREE.Vector3(-10, 14, -70), new THREE.Vector3(-64, -2, -30), new THREE.Vector3(-22, 0, -8), new THREE.Vector3(30, 0, -22)],
   false,
   'catmullrom',
   0.5,
 );
-const INTRO_CRAFT = new THREE.CatmullRomCurve3([new THREE.Vector3(-64, -3, -6), new THREE.Vector3(-44, -1, -3), new THREE.Vector3(-26, 0.2, -1.5), new THREE.Vector3(-9, 0.8, -1)]);
+const INTRO_CRAFT = new THREE.CatmullRomCurve3([new THREE.Vector3(-64, -3, -6), new THREE.Vector3(-44, -1, -4), new THREE.Vector3(-22, 0.6, -6), new THREE.Vector3(0, 1.6, -12)]);
 
 const ease = (t: number) => t * t * (3 - 2 * t);
 const damp = (current: number, target: number, lambda: number, dt: number) => current + (target - current) * (1 - Math.exp(-lambda * dt));
@@ -60,12 +60,14 @@ function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl |
       cam.position.copy(tmp);
       look.current.copy(tmp2);
       cam.lookAt(look.current);
-      sy = mobile ? 0.06 : 0;
+      // As the title arrives, slide the picture up and right so the spacecraft and Mars clear the text.
+      sx = mobile ? 0 : -0.1 * t;
+      sy = (mobile ? 0.3 : 0.24) * t;
     } else {
       const rig = RIGS[sc];
       fov = rig.fov;
       sx = mobile ? 0 : rig.shiftX;
-      sy = mobile ? rig.shiftYMobile : 0;
+      sy = mobile ? rig.shiftYMobile : rig.shiftY;
       const c = controls.current;
       if (sc === 'designer' && designerArmed.current && c) {
         // Player controls the camera; keep a slow turntable until they take over.
@@ -107,8 +109,6 @@ function SpacecraftActor() {
   const deployTarget = useRef(1);
   const nu = useRef(0.6);
   const tmp = useMemo(() => new THREE.Vector3(), []);
-  const tmp2 = useMemo(() => new THREE.Vector3(), []);
-
   useEffect(() => {
     if (scene === 'designer') {
       // Arrays unfold each time the design bay opens.
@@ -124,14 +124,15 @@ function SpacecraftActor() {
     if (!g) return;
     const dt = Math.min(rawDt, 0.05);
     const { scene: sc, design, settings } = useGame.getState();
-    deploy.current = Math.min(deployTarget.current, deploy.current + dt * 0.42);
+    // Real elapsed time here, so the arrays finish unfolding even on slow machines.
+    deploy.current = Math.min(deployTarget.current, deploy.current + Math.min(rawDt, 0.25) * 0.42);
     g.visible = sc !== 'readiness';
 
     if (sc === 'intro') {
       const t = ease(THREE.MathUtils.clamp(worldState.intro * 1.05, 0, 1));
       INTRO_CRAFT.getPoint(t, g.position);
-      INTRO_CRAFT.getTangent(t, tmp);
-      g.rotation.set(0.25, Math.atan2(tmp.x, tmp.z) - Math.PI / 2 + 0.9, 0.18 + state.clock.elapsedTime * 0.04);
+      // Turns slowly from side-on to facing the camera, so the arrays catch the sunlight at the end.
+      g.rotation.set(0.22 - 0.1 * t, -2.1 + 1.45 * t, 0.42 - 0.26 * t + Math.sin(state.clock.elapsedTime * 0.3) * 0.02);
       g.scale.setScalar(1);
     } else if (sc === 'designer') {
       g.position.copy(BAY_POS);
@@ -147,7 +148,6 @@ function SpacecraftActor() {
       g.lookAt(MARS_POS);
       g.rotateZ(0.4);
       g.scale.setScalar(sc === 'launch' ? 0.11 : 0.13);
-      tmp2.copy(tmp);
     }
   });
 
@@ -284,8 +284,8 @@ function Scene() {
         enablePan={false}
         enableDamping
         dampingFactor={0.08}
-        minDistance={5.5}
-        maxDistance={20}
+        minDistance={6}
+        maxDistance={24}
         autoRotateSpeed={0.55}
         onStart={() => {
           worldState.interacting = true;

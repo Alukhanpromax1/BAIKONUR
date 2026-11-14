@@ -119,7 +119,7 @@ export function useOrbiterMaterials(): OrbiterMaterials {
       frame: std({ color: '#2a303b', metalness: 0.85, roughness: 0.4 }),
       white: std({ color: '#e8ecf1', metalness: 0.08, roughness: 0.52 }),
       radiator: std({ map: louverTexture(), metalness: 0.35, roughness: 0.35 }),
-      cells: std({ map: cellTexture(), metalness: 0.55, roughness: 0.22, envMapIntensity: 1.4, emissive: '#0a1a44', emissiveIntensity: 0.25 }),
+      cells: std({ map: cellTexture(), metalness: 0.35, roughness: 0.34, envMapIntensity: 0.8, emissive: '#0a1a44', emissiveIntensity: 0.3 }),
       panelBack: std({ color: '#8a6a3c', metalness: 0.5, roughness: 0.55 }),
       panelEdge: std({ color: '#aab4c2', metalness: 0.9, roughness: 0.3 }),
       black: std({ color: '#0c0f14', metalness: 0.4, roughness: 0.6 }),

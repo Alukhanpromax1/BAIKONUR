@@ -28,7 +28,7 @@ void main() {
   vec2 c = gl_PointCoord - 0.5;
   float d = length(c);
   float core = smoothstep(0.5, 0.0, d);
-  float a = pow(core, 2.2) * vTwinkle;
+  float a = pow(core, 1.6) * vTwinkle;
   gl_FragColor = vec4(vColor * a, a);
 }
 `;
@@ -56,11 +56,11 @@ export function Starfield() {
       } while (i % 3 === 0 && Math.abs(v.dot(band)) > 0.22 && rng.next() < 0.85);
       positions.set([v.x * 900, v.y * 900, v.z * 900], i * 3);
       const mag = rng.next();
-      sizes[i] = 0.9 + Math.pow(mag, 7) * 4.2 + rng.next() * 0.7;
+      sizes[i] = 1.5 + Math.pow(mag, 6) * 5.5 + rng.next() * 1.1;
       phases[i] = rng.next();
       const t = rng.next();
       const c = t < 0.12 ? [1.0, 0.82, 0.66] : t < 0.3 ? [0.72, 0.84, 1.0] : [0.93, 0.95, 1.0];
-      const b = 0.45 + Math.pow(mag, 3) * 0.55;
+      const b = 0.7 + Math.pow(mag, 3) * 0.6;
       colors.set([c[0] * b, c[1] * b, c[2] * b], i * 3);
     }
     const g = new THREE.BufferGeometry();

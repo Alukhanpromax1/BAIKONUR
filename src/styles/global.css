@@ -942,8 +942,20 @@ button.tag:hover {
   opacity: 1;
 }
 
-/* ── 3D callouts (rendered by drei <Html>) ── */
+/* ── 3D callouts: DOM labels positioned from projected 3D anchors ── */
+.callouts {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none !important;
+  overflow: hidden;
+}
 .callout {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+  pointer-events: auto;
   display: flex;
   align-items: center;
   gap: 7px;

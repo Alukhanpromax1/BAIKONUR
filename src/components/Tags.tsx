@@ -10,9 +10,17 @@ const TONE: Record<ExtendedProvenance, string> = {
 };
 
 /** Shows where a number comes from. Click to open the Data Sources panel. */
-export function ProvenanceTag({ kind, label }: { kind: ExtendedProvenance; label?: string }) {
+export function ProvenanceTag({ kind, label, passive = false }: { kind: ExtendedProvenance; label?: string; passive?: boolean }) {
   const open = useGame((s) => s.openPanel);
   const p = PROVENANCE_LABEL[kind];
+  // `passive` renders a plain label for use inside other buttons (no nested interactive elements).
+  if (passive) {
+    return (
+      <span className={`tag ${TONE[kind]}`} title={`${p.label} — ${p.explain}`}>
+        {label ?? p.short}
+      </span>
+    );
+  }
   return (
     <button type="button" className={`tag ${TONE[kind]}`} title={`${p.label} — ${p.explain} Click for sources.`} onClick={() => open('sources')}>
       {label ?? p.short}
@@ -39,8 +47,18 @@ export const GLOSSARY: Record<string, string> = {
 };
 
 /** An underlined word with a plain-language definition on hover or focus. */
-export function Term({ k, children }: { k: keyof typeof GLOSSARY | string; children?: React.ReactNode }) {
+export function Term({ k, children, passive = false }: { k: keyof typeof GLOSSARY | string; children?: React.ReactNode; passive?: boolean }) {
   const text = GLOSSARY[k] ?? '';
+  if (passive) {
+    return (
+      <span className="term" title={text}>
+        {children ?? k}
+        <span className="term__pop" role="tooltip">
+          {text}
+        </span>
+      </span>
+    );
+  }
   return (
     <button type="button" className="term" aria-label={`${k}: ${text}`}>
       {children ?? k}

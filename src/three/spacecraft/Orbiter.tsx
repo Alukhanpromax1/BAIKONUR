@@ -1,10 +1,9 @@
-import { Html } from '@react-three/drei';
-import { useFrame, type ThreeEvent } from '@react-three/fiber';
+import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
-import { SLOTS } from '@/data/components';
 import { useGame } from '@/game/state/store';
 import type { Selections, SlotId } from '@/types';
+import { calloutScreen } from '../state';
 import { useOrbiterMaterials, type OrbiterMaterials } from './materials';
 
 const HIGHLIGHT = new THREE.Color('#52D7E8');
@@ -41,7 +40,7 @@ export function Orbiter({ selections, deploy, interactive = false, shadows = fal
       <Slot slot="propulsion" id={selections.propulsion} interactive={interactive}>
         <Propulsion m={m} high={selections.propulsion === 'prop-high'} />
       </Slot>
-      {interactive && <Callouts />}
+      {interactive && <CalloutAnchors />}
     </group>
   );
 }
@@ -99,8 +98,8 @@ function Slot({ slot, id, interactive, children }: { slot: SlotId; id: string; i
     const active = activeSlot === slot;
     const hovered = hoveredSlot === slot;
     const pulse = 0.5 + 0.5 * Math.sin(state.clock.elapsedTime * 3);
-    const swapGlow = (1 - e) * 0.9;
-    const glow = Math.max(swapGlow, hovered ? 0.3 : 0, active ? 0.1 + 0.08 * pulse : 0);
+    const swapGlow = (1 - e) * 0.6;
+    const glow = Math.max(swapGlow, hovered ? 0.16 : 0, active ? 0.035 + 0.035 * pulse : 0);
     for (const mat of mats.current) {
       const base = mat.userData.baseEmissive as THREE.Color;
       const baseI = mat.userData.baseIntensity as number;
@@ -505,27 +504,40 @@ function Propulsion({ m, high }: { m: OrbiterMaterials; high: boolean }) {
 }
 
 const CALLOUT_POS: Record<SlotId, [number, number, number]> = {
-  payload: [0, -0.25, 1.25],
-  power: [2.5, 0.75, 0.1],
-  comms: [-0.2, 2.35, 0.35],
-  storage: [-0.42, 0.42, 0.95],
-  propulsion: [0.2, -2.25, 0.2],
+  payload: [0, -0.25, 1.3],
+  power: [2.6, 0.95, 0.1],
+  comms: [-0.2, 2.45, 0.35],
+  storage: [-0.42, 0.42, 1.0],
+  propulsion: [0.2, -2.35, 0.2],
 };
 
-/** Clickable labels anchored to each subsystem — the keyboard-accessible way to inspect parts. */
-function Callouts() {
-  const active = useGame((s) => s.activeSlot);
-  const setActive = useGame((s) => s.setActiveSlot);
+/**
+ * Projects one anchor per subsystem to screen space each frame. The designer scene draws the
+ * actual (keyboard-accessible) label buttons in the DOM from these positions.
+ */
+function CalloutAnchors() {
+  const group = useRef<THREE.Group>(null);
+  const { camera, size } = useThree();
+  const v = useMemo(() => new THREE.Vector3(), []);
+  useFrame(() => {
+    const g = group.current;
+    if (!g) return;
+    for (const child of g.children) {
+      child.getWorldPosition(v).project(camera);
+      calloutScreen[child.name] = { x: (v.x * 0.5 + 0.5) * size.width, y: (-v.y * 0.5 + 0.5) * size.height, visible: v.z < 1 };
+    }
+  });
+  useEffect(
+    () => () => {
+      for (const k of Object.keys(calloutScreen)) delete calloutScreen[k];
+    },
+    [],
+  );
   return (
-    <>
-      {SLOTS.map((s) => (
-        <Html key={s.id} position={CALLOUT_POS[s.id]} center zIndexRange={[20, 10]}>
-          <button type="button" className={`callout ${active === s.id ? 'is-active' : ''}`} onClick={() => setActive(s.id)} aria-label={`Inspect ${s.label}`}>
-            <span className="callout__dot" />
-            <span className="callout__label">{s.label}</span>
-          </button>
-        </Html>
+    <group ref={group}>
+      {(Object.keys(CALLOUT_POS) as SlotId[]).map((slot) => (
+        <object3D key={slot} name={slot} position={CALLOUT_POS[slot]} />
       ))}
-    </>
+    </group>
   );
 }

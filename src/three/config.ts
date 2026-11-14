@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Quality, SceneId } from '@/types';
 
 /** Shared layout of the 3D world. One canvas, one starfield, every scene is a place in it. */
-export const SUN_DIR = new THREE.Vector3(-0.55, 0.32, 0.77).normalize();
+export const SUN_DIR = new THREE.Vector3(-0.74, 0.3, 0.6).normalize();
 export const EARTH_POS = new THREE.Vector3(-70, -4, -30);
 export const EARTH_RADIUS = 7;
 export const MARS_POS = new THREE.Vector3(70, 0, -20);
@@ -22,35 +22,22 @@ export interface Rig {
   fov: number;
   /** Shifts the picture sideways (fraction of width) so the subject clears the UI panel. */
   shiftX: number;
-  /** Same, vertically, used on narrow screens. */
+  /** Shifts the picture up (fraction of height) on wide screens. */
+  shiftY: number;
+  /** Same, used on narrow screens where the controls sit below the 3D view. */
   shiftYMobile: number;
 }
 
 export const RIGS: Record<Exclude<SceneId, 'intro'>, Rig> = {
-  briefing: { position: [50, 3, 4], target: [70, 0, -20], fov: 38, shiftX: -0.2, shiftYMobile: 0.18 },
-  designer: { position: [6.2, 3.2, 8.6], target: [0, 0, 0], fov: 36, shiftX: 0.16, shiftYMobile: 0.2 },
-  launch: { position: [62, 15, 19], target: [70, 0, -20], fov: 38, shiftX: 0.17, shiftYMobile: 0.2 },
-  readiness: { position: [-57, 2, -16], target: [-70, -4, -30], fov: 40, shiftX: -0.26, shiftYMobile: 0.24 },
-  operations: { position: [70, 13, 24], target: [70, 0, -20], fov: 38, shiftX: 0, shiftYMobile: 0.08 },
-  debrief: { position: [44, 5, 12], target: [70, 0, -20], fov: 36, shiftX: -0.24, shiftYMobile: 0.22 },
+  briefing: { position: [50, 3, 4], target: [70, 0, -20], fov: 38, shiftX: -0.2, shiftY: 0, shiftYMobile: 0.18 },
+  designer: { position: [7.6, 4.1, 10.6], target: [0, 0, 0], fov: 36, shiftX: 0.15, shiftY: 0.07, shiftYMobile: 0.27 },
+  launch: { position: [62, 15, 19], target: [70, 0, -20], fov: 38, shiftX: 0.17, shiftY: 0.04, shiftYMobile: 0.27 },
+  readiness: { position: [-65, 1.5, -12.5], target: [-70, -4, -30], fov: 40, shiftX: -0.26, shiftY: 0, shiftYMobile: 0.24 },
+  operations: { position: [70, 13, 24], target: [70, 0, -20], fov: 38, shiftX: 0, shiftY: 0.02, shiftYMobile: 0.2 },
+  debrief: { position: [44, 5, 12], target: [70, 0, -20], fov: 36, shiftX: -0.24, shiftY: 0, shiftYMobile: 0.22 },
 };
 
-/**
- * Mutable animation state shared between the DOM layer and the render loop.
- * Values here change every frame and deliberately live outside React state.
- */
-export const worldState = {
-  /** 0 → 1 progress of the opening cinematic. */
-  intro: 0,
-  /** Seconds of launch interstitial, −1 when inactive. */
-  launchT: -1,
-  /** Orbit phase advance per second in the operations scene (set by the sim playback). */
-  opsSpeed: 1,
-  /** 0–1 dust storm strength on Mars. */
-  storm: 0,
-  /** True while the player is dragging the spacecraft in the designer. */
-  interacting: false,
-};
+export { worldState } from './state';
 
 /** Display radius for an orbit altitude. Orbits are drawn compressed (not to scale). */
 export function displayRadius(altitudeKm: number): number {

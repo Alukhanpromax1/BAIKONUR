@@ -159,13 +159,21 @@ export function planEvents(design: MissionDesign, geo: Geometry[]): OpsEvent[] {
   events.push({ id: 'power', promptStep: pStart, windowStart: pStart, windowEnd: pEnd });
 
   // 3 — Regional dust storm (fictional gameplay event), kept clear of the other prompts.
-  const clear = (i: number) => events.every((e) => Math.abs(e.promptStep - i) > steps(24) && (i + steps(STORM_DAYS) < e.windowStart || i > e.windowEnd || e.id === 'power'));
-  let storm = -1;
-  for (const f of [0.55, 0.7, 0.42, 0.82, 0.3, 0.18]) {
-    const i = Math.round(n * f);
-    if (i > 2 && i + steps(STORM_DAYS) < n && clear(i)) {
-      storm = i;
-      break;
+  const far60 = (i: number) => events.every((e) => Math.abs(e.promptStep - i) >= steps(60));
+  const outside = (i: number) => events.every((e) => i + steps(STORM_DAYS) < e.windowStart || i > e.windowEnd);
+  const candidates: number[] = [];
+  for (const f of [0.55, 0.7, 0.42, 0.82, 0.3, 0.18, 0.62, 0.9, 0.12]) candidates.push(Math.round(n * f));
+  const usable = (i: number) => i > 2 && i + steps(STORM_DAYS) < n;
+  // Prefer a date clear of both other events; otherwise at least 60 days from their prompts.
+  let storm = candidates.find((i) => usable(i) && far60(i) && outside(i)) ?? candidates.find((i) => usable(i) && far60(i)) ?? -1;
+  if (storm < 0) {
+    let best = -1;
+    for (const i of candidates.filter(usable)) {
+      const gap = Math.min(...events.map((e) => Math.abs(e.promptStep - i)));
+      if (gap > best) {
+        best = gap;
+        storm = i;
+      }
     }
   }
   if (storm < 0) storm = Math.round(n * 0.5);

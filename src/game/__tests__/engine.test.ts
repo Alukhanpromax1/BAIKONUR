@@ -10,6 +10,7 @@ import { evaluateDesign } from '@/game/engine/resources';
 import { sciencePotential } from '@/game/engine/science';
 import { marsOrbitExtremesAu, sampleAt, samplesBetween, jdFromIso, SNAPSHOT_META } from '@/services/horizons/ephemeris';
 import { parseHorizonsVectors } from '@/services/horizons/parse';
+import type { MissionDesign } from '@/types';
 import { allDesigns, baseDesign, withSelection } from './fixtures';
 
 describe('mass', () => {
@@ -195,7 +196,7 @@ describe('mission compatibility', () => {
   });
 
   it('blocks a design that is over budget', () => {
-    let d = { ...baseDesign, vehicle: 'tulpar-h' as const };
+    let d: MissionDesign = { ...baseDesign, vehicle: 'tulpar-h' };
     for (const [slot, id] of [['payload', 'suite'], ['comms', 'comms-high'], ['storage', 'storage-high'], ['propulsion', 'prop-high']] as const) d = withSelection(d, slot, id);
     const e = evaluateDesign(d);
     expect(e.budget.ok).toBe(false);
