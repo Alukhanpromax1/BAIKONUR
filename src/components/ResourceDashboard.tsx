@@ -11,7 +11,7 @@ import { ProvenanceTag, Term } from './Tags';
 
 type ResourceId = Issue['resource'];
 
-const STATUS_TEXT: Record<Status, string> = { ok: 'OK', tight: 'TIGHT', get over() { return t('dash.status_text.over'); } };
+const STATUS_TEXT: Record<Status, string> = { get ok() { return t('dash.status_text.ok'); }, get tight() { return t('dash.status_text.tight'); }, get over() { return t('dash.status_text.over'); } };
 
 function Bumped({ value }: { value: string }) {
   const ref = useRef<HTMLSpanElement>(null);

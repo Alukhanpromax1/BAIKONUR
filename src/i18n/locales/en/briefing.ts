@@ -71,7 +71,7 @@ export const briefing = {
   'briefing.arman_and_dana_explain_each_decision': 'Arman and Dana explain each decision and suggest sensible options.',
   'briefing.adds_formulas_assumptions_and_raw_data': 'Adds formulas, assumptions and raw data. No suggestions.',
   'briefing.enter_the_design_bay': 'Enter the design bay',
-  'briefing.one_way': '{oneWayLightTimeS}one way',
+  'briefing.one_way': '{oneWayLightTimeS} one way',
   'briefing.continue': 'Continue',
   'briefing.topics.mass.label': 'Mass',
   'briefing.topics.power.label': 'Power',

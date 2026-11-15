@@ -5,6 +5,7 @@ import { CHALLENGE_REFERENCE, DATA_SOURCES, PROVENANCE_LABEL } from '@/data/nasa
 import { formatLightTime, roundTripS } from '@/game/engine/comms';
 import { defaultPlayers, ROLES, useGame } from '@/game/state/store';
 import { useLightTime } from '@/hooks/useLightTime';
+import { LanguageSwitch } from './LanguageSwitch';
 import type { GameMode, Quality } from '@/types';
 
 function Drawer({ title, eyebrow, onClose, children }: { title: string; eyebrow: string; onClose: () => void; children: React.ReactNode }) {
@@ -162,6 +163,10 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </div>
+        </section>
+        <section className="stack stack--sm">
+          <div className="eyebrow eyebrow--muted">{t('top.language')}</div>
+          <LanguageSwitch />
         </section>
         <section className="stack stack--sm">
           <div className="eyebrow eyebrow--muted">{t('panel.visual_quality')}</div>

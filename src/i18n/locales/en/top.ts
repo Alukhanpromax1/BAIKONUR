@@ -11,6 +11,7 @@ export const top = {
   'top.data_sources': 'Data sources',
   'top.mute_sound': 'Mute sound',
   'top.turn_sound_on': 'Turn sound on',
+  'top.language': 'Language',
   'top.settings': 'Settings',
-  'top.team_player': 'Team: {players} player{s}',
+  'top.team_player': 'Team: {n} {n:player|players}',
 };

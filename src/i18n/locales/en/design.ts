@@ -13,7 +13,7 @@ export const design = {
   'design.rate_at_1_au': 'Rate at 1 AU',
   'design.inspect': 'Inspect {s}',
   'design.design_bay': 'Design bay · {objective}',
-  'design.lead': 'Lead: {engineer}· {engineer2}',
+  'design.lead': 'Lead: {engineer} · {engineer2}',
   'design.plan_the_launch': 'Plan the launch',
   'design.hover_hint': '<b>{slot}</b> — click to configure',
   'design.coach.payload.text': 'Pick the instrument your science question needs — then check whether the link can carry its data home.',

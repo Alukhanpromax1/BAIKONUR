@@ -41,7 +41,7 @@ export const panel = {
   'panel.high': 'High',
   'panel.balanced': 'Balanced',
   'panel.low': 'Low',
-  'panel.mode': '{m}mode',
+  'panel.mode': '{m} mode',
   'panel.name_of_the': 'Name of the {role}',
   'panel.range_value': '{km} km · {au} AU',
   'panel.retrieved_utc': 'Retrieved {time} UTC.',

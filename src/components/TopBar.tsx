@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { setSoundEnabled, sfx } from '@/audio/sound';
 import { formatLightTime } from '@/game/engine/comms';
 import { SCENE_ORDER, STAGES, useGame } from '@/game/state/store';
+import { LanguageSwitch } from './LanguageSwitch';
 import { useLightTime } from '@/hooks/useLightTime';
 
 export function BrandMark() {
@@ -71,6 +72,7 @@ export function TopBar() {
       )}
 
       <div className="topbar__right">
+        <LanguageSwitch compact />
         {!bare && (
           <button type="button" className="lt-chip" onClick={() => openPanel('sources')} title={t('top.earth_mars_one_way_light_time')}>
             <span className="lt-chip__label">{t('top.earth_mars')}</span>
@@ -82,7 +84,7 @@ export function TopBar() {
           </button>
         )}
         {!bare && (
-          <button type="button" className="icon-btn" onClick={() => openPanel('team')} aria-label={t('top.team_player', { players: players.length, s: players.length > 1 ? 's' : '' })} title={t('top.team')}>
+          <button type="button" className="icon-btn" onClick={() => openPanel('team')} aria-label={t('top.team_player', { n: players.length })} title={t('top.team')}>
             <Users size={18} />
           </button>
         )}
