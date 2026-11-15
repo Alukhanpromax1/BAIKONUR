@@ -1251,3 +1251,117 @@ input[type='range']::-moz-range-thumb {
     height: 200px;
   }
 }
+
+/* ── Info icons ── */
+.infotip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 6px;
+  vertical-align: middle;
+  border-radius: 50%;
+  color: var(--muted);
+  cursor: help;
+  outline: none;
+  flex: none;
+}
+.infotip:hover,
+.infotip:focus-visible,
+.infotip.is-open {
+  color: var(--cyan);
+}
+.infotip__pop {
+  position: absolute;
+  z-index: 60;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  width: min(270px, 80vw);
+  padding: 10px 12px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: left;
+  white-space: normal;
+  color: var(--text);
+  background: #16223a;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.infotip:hover .infotip__pop,
+.infotip:focus .infotip__pop,
+.infotip.is-open .infotip__pop {
+  opacity: 1;
+}
+.infotip__title {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+/* ── MISSION AI ── */
+.ai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 11px;
+  margin-right: 4px;
+  border: 1px solid rgba(255, 184, 77, 0.45);
+  border-radius: 2px;
+  background: rgba(255, 184, 77, 0.08);
+  color: var(--amber);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ai-btn:hover {
+  background: rgba(255, 184, 77, 0.16);
+}
+.drawer.ai {
+  width: min(560px, 100%);
+}
+@media (max-width: 1180px) {
+  .ai-btn__label {
+    display: none;
+  }
+  .ai-btn {
+    padding: 0 9px;
+  }
+}
+.ai-line {
+  padding: 10px 12px;
+  border-left: 2px solid var(--line-strong);
+  background: rgba(16, 24, 39, 0.6);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.ai-line--warn {
+  border-left-color: var(--amber);
+  background: var(--amber-dim);
+}
+.ai-line--block {
+  border-left-color: var(--coral);
+  background: var(--coral-dim);
+}
+.ai-next {
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 184, 77, 0.35);
+  border-left: 2px solid var(--amber);
+  background: rgba(255, 184, 77, 0.06);
+}

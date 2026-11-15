@@ -15,7 +15,11 @@ import { evaluateDesign } from '@/game/engine/resources';
 import { ROLES, useGame } from '@/game/state/store';
 import { useReveal } from '@/hooks/useReveal';
 import { calloutScreen } from '@/three/state';
+import { InfoTip, type InfoKey } from '@/components/InfoTip';
 import type { SlotId } from '@/types';
+
+/** The plain-language explanation that goes with each subsystem. */
+const SLOT_INFO: Record<SlotId, InfoKey> = { payload: 'payload', power: 'power_margin', comms: 'comm_link', storage: 'data_recorder', propulsion: 'mass' };
 
 const SLOT_ICON: Record<SlotId, React.ReactNode> = {
   payload: <Telescope size={16} />,
@@ -197,7 +201,7 @@ export default function SpacecraftDesigner() {
                 {open && (
                   <div className="slot__body stack stack--sm">
                     <p className="small">
-                      <b>{slot.question}</b> <span className="muted">{slot.explain}</span>
+                      <b>{slot.question}</b> <InfoTip k={SLOT_INFO[slot.id]} /> <span className="muted">{slot.explain}</span>
                     </p>
                     {optionsFor(slot.id).map((o) => {
                       const selected = current.id === o.id;

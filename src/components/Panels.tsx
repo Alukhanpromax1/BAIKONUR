@@ -6,6 +6,7 @@ import { formatLightTime, roundTripS } from '@/game/engine/comms';
 import { defaultPlayers, ROLES, useGame } from '@/game/state/store';
 import { useLightTime } from '@/hooks/useLightTime';
 import { LanguageSwitch } from './LanguageSwitch';
+import { MissionAIDrawer } from './MissionAI';
 import type { GameMode, Quality } from '@/types';
 
 function Drawer({ title, eyebrow, onClose, children }: { title: string; eyebrow: string; onClose: () => void; children: React.ReactNode }) {
@@ -254,5 +255,6 @@ export function Panels() {
   if (panel === 'sources') return <SourcesPanel onClose={close} />;
   if (panel === 'settings') return <SettingsPanel onClose={close} />;
   if (panel === 'team') return <TeamPanel onClose={close} />;
+  if (panel === 'ai') return <MissionAIDrawer onClose={close} />;
   return null;
 }

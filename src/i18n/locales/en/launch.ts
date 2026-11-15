@@ -29,6 +29,7 @@ export const launch = {
   'launch.meta_contact': 'Contact <b>{n} h/day</b>',
   'launch.meta_science': 'Science <b>{n} days</b>',
   'launch.assumptions': 'Assumptions: velocity change, shadow fraction and contact hours are fixed illustrative values per orbit. Orbit rings in the 3D view use a logarithmic altitude scale. Low orbit assumes <ab>aerobraking</ab>.',
+  'launch.orbit_altitude_hint': 'Higher orbits see more of the planet at once. Lower ones see more sharply but spend less time in contact with Earth.',
   'launch.check_passed': 'Resource check passed. Amber warnings will matter during the mission — you can still launch.',
   'launch.check_failed': 'Resource check failed: every red meter must be fixed before launch.',
 };

@@ -8,8 +8,12 @@ import type { DesignEvaluation, Issue, Status } from '@/game/engine/resources';
 import { useGame } from '@/game/state/store';
 import { formatJd } from '@/services/horizons/ephemeris';
 import { ProvenanceTag, Term } from './Tags';
+import { InfoTip, type InfoKey } from './InfoTip';
 
 type ResourceId = Issue['resource'];
+
+/** The explanation shown next to each resource meter. */
+const METER_INFO: Record<ResourceId, InfoKey> = { mass: 'mass', power: 'power_margin', budget: 'budget', data: 'data_recorder', comms: 'comm_link', duration: 'mission_duration' };
 
 const STATUS_TEXT: Record<Status, string> = { get ok() { return t('dash.status_text.ok'); }, get tight() { return t('dash.status_text.tight'); }, get over() { return t('dash.status_text.over'); } };
 
@@ -51,6 +55,7 @@ function Meter({ id, icon, label, value, unit, fill, note, status, open, onToggl
         <span className="meter__label">
           {icon}
           {label}
+          <InfoTip k={METER_INFO[id]} label={label} />
         </span>
         <span className={`xs mono status-${status}`}>{STATUS_TEXT[status]}</span>
       </span>

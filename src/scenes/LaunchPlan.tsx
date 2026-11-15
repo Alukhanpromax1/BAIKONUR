@@ -14,6 +14,7 @@ import { DURATIONS, DURATION_BY_ID, ORBITS, ORBIT_BY_ID } from '@/data/orbits';
 import { evaluateDesign } from '@/game/engine/resources';
 import { ROLES, useGame } from '@/game/state/store';
 import { useReveal } from '@/hooks/useReveal';
+import { InfoTip } from '@/components/InfoTip';
 import { SciencePotential } from './SpacecraftDesigner';
 
 type Section = 'vehicle' | 'orbit' | 'duration';
@@ -139,6 +140,7 @@ export default function LaunchPlan() {
             </button>
             {open === 'orbit' && (
               <div className="slot__body stack stack--sm">
+                <div className="row"><span className="small muted">{t('launch.orbit_altitude_hint')}</span><InfoTip k="orbital_altitude" /></div>
                 {ORBITS.map((o) => {
                   const selected = design.orbit === o.id;
                   return (

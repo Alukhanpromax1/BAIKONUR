@@ -1,4 +1,4 @@
-import { Database, Settings, Users, Volume2, VolumeX } from 'lucide-react';
+import { Database, Settings, Sparkles, Users, Volume2, VolumeX } from 'lucide-react';
 import { t } from '@/i18n';
 import { useEffect } from 'react';
 import { setSoundEnabled, sfx } from '@/audio/sound';
@@ -83,6 +83,10 @@ export function TopBar() {
             </span>
           </button>
         )}
+        <button type="button" className="ai-btn" onClick={() => openPanel('ai')} aria-label={t('ai.button')} title={t('ai.button')} data-testid="open-ai">
+          <Sparkles size={16} />
+          <span className="ai-btn__label">{t('ai.button')}</span>
+        </button>
         {!bare && (
           <button type="button" className="icon-btn" onClick={() => openPanel('team')} aria-label={t('top.team_player', { n: players.length })} title={t('top.team')}>
             <Users size={18} />

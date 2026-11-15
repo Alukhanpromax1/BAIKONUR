@@ -1,3 +1,4 @@
+import { ai, info } from './ai';
 import { app } from './app';
 import { briefing } from './briefing';
 import { budget } from './budget';
@@ -35,6 +36,8 @@ import { verdict } from './verdict';
 
 /** English is the source language: its keys define what every other language must provide. */
 export const en = {
+  ...ai,
+  ...info,
   ...app,
   ...briefing,
   ...budget,

@@ -5,6 +5,7 @@ import { engine } from './engine';
 import { ops } from './ops';
 import { ready } from './ready';
 import { debrief } from './debrief';
+import { ai } from './ai';
 import { data } from './data';
 
 /**
@@ -18,5 +19,6 @@ export const ru: Record<MessageKey, string> = {
   ...ops,
   ...ready,
   ...debrief,
+  ...ai,
   ...data,
 };

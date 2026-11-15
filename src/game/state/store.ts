@@ -56,7 +56,7 @@ export interface GameState {
   /** Which operations event (if any) is currently highlighted in the 3D scene. */
   opsHighlight: 'storm' | 'blackout' | 'safe' | null;
   missionLog: LogEntry[];
-  panel: 'sources' | 'settings' | 'team' | null;
+  panel: 'sources' | 'settings' | 'team' | 'ai' | null;
 
   go: (scene: SceneId) => void;
   setSettings: (patch: Partial<Settings>) => void;

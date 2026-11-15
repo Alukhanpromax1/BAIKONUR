@@ -14,6 +14,7 @@ import { formatData, formatLightTime, formatRate, roundTripS } from '@/game/engi
 import { POWER_MARGIN_RULE, simulateMission, STORM_DAYS, type OpsEvent, type OpsEventId, type SimResult, type SimStep } from '@/game/ops/simulate';
 import { resolveReadiness } from '@/game/scenarios/decision';
 import { useGame } from '@/game/state/store';
+import { InfoTip } from '@/components/InfoTip';
 import { useReveal } from '@/hooks/useReveal';
 import { formatJd } from '@/services/horizons/ephemeris';
 import { worldState } from '@/three/state';
@@ -121,7 +122,7 @@ export default function MarsOperations() {
 
       <div className="ops__left" data-reveal>
         <div className="panel hud" data-status={marginTone}>
-          <div className="hud__head"><span className="eyebrow eyebrow--muted">{t('ops.power')}</span><span className={`xs mono status-${marginTone}`}>{step.safeMode ? t('ops.safe_mode') : step.powerMode === 'full' ? t('ops.full_ops') : step.powerMode === 'cycle' ? t('ops.duty_cycled') : t('ops.deep_saving')}</span></div>
+          <div className="hud__head"><span className="eyebrow eyebrow--muted">{t('ops.power')}<InfoTip k="power_margin" /></span><span className={`xs mono status-${marginTone}`}>{step.safeMode ? t('ops.safe_mode') : step.powerMode === 'full' ? t('ops.full_ops') : step.powerMode === 'cycle' ? t('ops.duty_cycled') : t('ops.deep_saving')}</span></div>
           <div className="hud__value mono" data-testid="ops-power">{Math.round(step.marginW) >= 0 ? '+' : '−'}{Math.abs(Math.round(step.marginW))} <small>{t('ops.w_margin')}</small></div>
           <div className={`meter__bar meter--${marginTone}`}><span className="meter__fill" style={{ transform: `scaleX(${Math.max(0.02, Math.min(1, step.consumptionW / step.availableW))})` }} /></div>
           <div className="hud__rows">
@@ -131,7 +132,7 @@ export default function MarsOperations() {
           </div>
         </div>
         <div className="panel hud" data-status={storedTone}>
-          <div className="hud__head"><span className="eyebrow eyebrow--muted">{t('ops.data_recorder')}</span><span className={`xs mono status-${storedTone}`}>{storedTone === 'over' ? t('ops.full_overwriting') : storedTone === 'tight' ? t('ops.filling') : t('ops.ok')}</span></div>
+          <div className="hud__head"><span className="eyebrow eyebrow--muted">{t('ops.data_recorder')}<InfoTip k="data_recorder" /></span><span className={`xs mono status-${storedTone}`}>{storedTone === 'over' ? t('ops.full_overwriting') : storedTone === 'tight' ? t('ops.filling') : t('ops.ok')}</span></div>
           <div className="hud__value mono" data-testid="ops-stored">{formatData(step.storedMb)} <small>/ {formatData(sim.capacityMb)}</small></div>
           <div className={`meter__bar meter--${storedTone}`}><span className="meter__fill" style={{ transform: `scaleX(${Math.max(0.02, Math.min(1, step.storedMb / sim.capacityMb))})` }} /></div>
           <div className="hud__rows">
@@ -144,7 +145,7 @@ export default function MarsOperations() {
 
       <div className="ops__right" data-reveal>
         <div className="panel hud">
-          <div className="hud__head"><span className="eyebrow eyebrow--muted">{t('ops.communications')}</span><span className={`xs mono ${linkTone}`} data-testid="ops-link">{linkState}</span></div>
+          <div className="hud__head"><span className="eyebrow eyebrow--muted">{t('ops.communications')}<InfoTip k="comm_link" /></span><span className={`xs mono ${linkTone}`} data-testid="ops-link">{linkState}</span></div>
           <div className="hud__value mono">{formatRate(step.rateKbps)}</div>
           <div className="hud__rows">
             <div><span><T k="ops.one_way_delay" tags={{ lt: (c) => <Term k="light time">{c}</Term> }} /></span><span data-testid="ops-lighttime">{formatLightTime(step.lightTimeS)}</span></div>
@@ -154,7 +155,7 @@ export default function MarsOperations() {
           </div>
         </div>
         <div className="panel hud">
-          <div className="hud__head"><span className="eyebrow eyebrow--muted">{t('ops.science')}</span><span className="xs mono muted">{payload.short}</span></div>
+          <div className="hud__head"><span className="eyebrow eyebrow--muted">{t('ops.science')}<InfoTip k="payload" /></span><span className="xs mono muted">{payload.short}</span></div>
           <div className="hud__value mono" data-testid="ops-science">{sciencePct.toFixed(0)} <small>{t('ops.of_planned_data_on_earth')}</small></div>
           <div className="meter__bar"><span className="meter__fill" style={{ transform: `scaleX(${Math.max(0.02, sciencePct / 100)})` }} /></div>
           <div className="hud__rows">
