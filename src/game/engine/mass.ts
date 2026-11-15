@@ -1,4 +1,5 @@
 import { COMPONENT_BY_ID } from '@/data/components';
+import { t } from '@/i18n';
 import { G0, GAME } from '@/data/constants';
 import { VEHICLE_BY_ID } from '@/data/launchVehicles';
 import { ORBIT_BY_ID } from '@/data/orbits';
@@ -45,7 +46,7 @@ export function computeMass(design: MissionDesign): MassSummary {
   const s = design.selections;
   const slots: SlotId[] = ['payload', 'power', 'comms', 'storage', 'propulsion'];
   const lines: MassLine[] = [
-    { label: 'Spacecraft bus', kg: GAME.busMassKg },
+    { label: t('mass.spacecraft_bus'), kg: GAME.busMassKg },
     ...slots.map((slot) => ({ label: COMPONENT_BY_ID[s[slot]].name, kg: COMPONENT_BY_ID[s[slot]].massKg, slot })),
   ];
   const dryKg = lines.reduce((sum, l) => sum + l.kg, 0);

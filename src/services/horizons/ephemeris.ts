@@ -1,5 +1,6 @@
 import snapshot from '@/data/nasa/horizonsSnapshot.json';
 import { AU_KM } from '@/data/constants';
+import { t } from '@/i18n';
 
 /**
  * Access to the cached NASA/JPL Horizons snapshot (see scripts/fetch-horizons.mjs).
@@ -53,10 +54,9 @@ export function isoFromJd(jd: number): string {
   return dateFromJd(jd).toISOString().slice(0, 10);
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export function formatJd(jd: number): string {
   const d = dateFromJd(jd);
-  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  return `${d.getUTCDate()} ${t('fmt.months').split(',')[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
 /** Sun–Earth–Mars angle from the three side lengths of the Sun–Earth–Mars triangle. */

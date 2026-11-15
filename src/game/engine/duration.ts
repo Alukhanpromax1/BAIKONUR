@@ -1,4 +1,5 @@
 import { GAME, MARS_MEAN_SUN_DISTANCE_AU } from '@/data/constants';
+import { t } from '@/i18n';
 import { DURATION_BY_ID, ORBIT_BY_ID } from '@/data/orbits';
 import { jdFromIso } from '@/services/horizons/ephemeris';
 import type { MissionDesign } from '@/types';
@@ -43,19 +44,19 @@ export function computeTimeline(design: MissionDesign, slipDays = 0): MissionTim
   const scienceStartJd = arrivalJd + orbit.commissioningDays;
   const scienceEndJd = scienceStartJd + scienceDays;
   const phases: TimelinePhase[] = [
-    { id: 'preparation', label: 'Mission preparation', startJd: launchJd, days: 0, note: 'Design, testing and launch readiness.' },
-    { id: 'launch', label: 'Launch', startJd: launchJd, days: 0, note: 'Departure in the late-2026 Earth–Mars window.' },
-    { id: 'transit', label: 'Transit', startJd: launchJd, days: transitDays, note: 'Cruise to Mars (simplified Hohmann estimate).' },
-    { id: 'arrival', label: 'Mars arrival', startJd: arrivalJd, days: 0, note: 'Engine burn to be captured by Mars.' },
+    { id: 'preparation', label: t('timeline.mission_preparation'), startJd: launchJd, days: 0, note: t('timeline.design_testing_and_launch_readiness') },
+    { id: 'launch', label: t('timeline.launch'), startJd: launchJd, days: 0, note: t('timeline.departure_in_the_late_2026_earth') },
+    { id: 'transit', label: t('timeline.transit'), startJd: launchJd, days: transitDays, note: t('timeline.cruise_to_mars_simplified_hohmann_estimate') },
+    { id: 'arrival', label: t('timeline.mars_arrival'), startJd: arrivalJd, days: 0, note: t('timeline.engine_burn_to_be_captured_by') },
     {
       id: 'commissioning',
-      label: 'Orbital operations',
+      label: t('timeline.orbital_operations'),
       startJd: arrivalJd,
       days: orbit.commissioningDays,
-      note: design.orbit === 'low-polar' ? 'Aerobraking down to the mapping orbit.' : 'Orbit trimming and instrument check-out.',
+      note: design.orbit === 'low-polar' ? t('timeline.aerobraking_down_to_the_mapping_orbit') : t('timeline.orbit_trimming_and_instrument_check_out'),
     },
-    { id: 'science', label: 'Scientific observations', startJd: scienceStartJd, days: scienceDays, note: 'The primary science phase.' },
-    { id: 'evaluation', label: 'Final evaluation', startJd: scienceEndJd, days: 0, note: 'Mission report and lessons learned.' },
+    { id: 'science', label: t('timeline.scientific_observations'), startJd: scienceStartJd, days: scienceDays, note: t('timeline.the_primary_science_phase') },
+    { id: 'evaluation', label: t('timeline.final_evaluation'), startJd: scienceEndJd, days: 0, note: t('timeline.mission_report_and_lessons_learned') },
   ];
   return {
     launchJd,

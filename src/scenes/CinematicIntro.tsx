@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { t } from '@/i18n';
 import { ArrowRight, SkipForward } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { navigate } from '@/app/navigation';
@@ -58,29 +59,29 @@ export default function CinematicIntro() {
     <div className="intro" ref={root}>
       {!done && (
         <button type="button" className="btn btn--ghost btn--sm intro__skip" onClick={skip} data-testid="skip-intro">
-          Skip intro <SkipForward size={14} />
+          {t('intro.skip_intro')}{' '} <SkipForward size={14} />
         </button>
       )}
       <div className="intro__content">
-        <div className="eyebrow intro__eyebrow intro__reveal">The Space Mission Decision Simulator</div>
+        <div className="eyebrow intro__eyebrow intro__reveal">{t('intro.the_space_mission_decision_simulator')}</div>
         <h1 className="intro__title">
-          <span className="intro__reveal">BAIKONUR:</span>
-          <span className="intro__reveal intro__title-2">MISSION CONTROL</span>
+          <span className="intro__reveal">{t('intro.baikonur')}</span>
+          <span className="intro__reveal intro__title-2">{t('intro.mission_control')}</span>
         </h1>
-        <p className="intro__tagline intro__reveal">EVERY DECISION HAS A CONSEQUENCE.</p>
+        <p className="intro__tagline intro__reveal">{t('intro.every_decision_has_a_consequence')}</p>
         <div className="intro__cta intro__reveal row row--wrap">
           <button type="button" className="btn btn--lg" onClick={() => navigate('briefing')} data-testid="start-mission">
-            Start mission <ArrowRight size={16} />
+            {t('intro.start_mission')}{' '} <ArrowRight size={16} />
           </button>
-          <span className="small muted">About 10–15 minutes · 1–4 players</span>
+          <span className="small muted">{t('intro.about_10_15_minutes_1_4')}</span>
         </div>
       </div>
       <div className="intro__foot intro__reveal">
         <button type="button" className="link-btn xs" onClick={() => setSettings({ reducedMotion: !reduced })} data-testid="toggle-motion">
-          {reduced ? 'Turn full motion on' : 'Reduce motion'}
+          {reduced ? t('intro.turn_full_motion_on') : t('intro.reduce_motion')}
         </button>
         <span className="xs dim">
-          KAZMARS-1 is a fictional educational mission. Not a NASA or government mission. NASA Space Apps Challenge 2026 · Space Mission Design Game.
+          {t('intro.kazmars_1_is_a_fictional_educational')}
         </span>
       </div>
     </div>

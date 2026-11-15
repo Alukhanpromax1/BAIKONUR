@@ -1,0 +1,17 @@
+export const term = {
+  'term.false_positive': 'false positive',
+  'term.false_negative': 'false negative',
+  'term.sensor_noise': 'sensor noise',
+  'term.data_quality': 'data quality',
+  'term.correlation': 'correlation',
+  'term.moving_average': 'moving average',
+  'term.light_time': 'light time',
+  'term.delta_v': 'delta-v',
+  'term.safe_mode': 'safe mode',
+  'term.solar_conjunction': 'solar conjunction',
+  'term.aerobraking': 'aerobraking',
+  'term.mb': 'Mb',
+  'term.gb': 'Gb',
+  'term.kbps': 'kbps',
+  'term.au': 'AU',
+};

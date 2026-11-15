@@ -1,0 +1,17 @@
+export const u = {
+  'u.barmin': '{n} bar/min',
+  'u.degcmin': '{n} °C/min',
+  'u.kg': '{n} kg',
+  'u.cr': '{n} cr',
+  'u.mbday': '{n} Mb/day',
+  'u.au': '{n} AU',
+  'u.kms': '{n} km/s',
+  'u.hday': '{n} h/day',
+  'u.days': '{n} {n:day|days}',
+  'u.credits': '{n} {n:credit|credits}',
+  'u.gb': '{n} Gb',
+  'u.mb': '{n} Mb',
+  'u.kbps': '{n} kbps',
+  'u.m2': '{n} m²',
+  'u.mbps': '{n} Mbps',
+};

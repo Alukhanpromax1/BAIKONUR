@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { t } from '@/i18n';
 import { RECOMMENDED, RECOMMENDED_PLAN } from '@/data/components';
 import type { OpsDecisions } from '@/game/ops/simulate';
 import type { EvidencePanel, FinalCall, PrimaryChoice } from '@/game/scenarios/decision';
@@ -133,7 +134,7 @@ const designFor = (objective: ObjectiveId): MissionDesign => ({
 
 const ROLE_ORDER: RoleId[] = ['director', 'engineer', 'science', 'comms'];
 export const defaultPlayers = (count: number): Player[] =>
-  ROLE_ORDER.slice(0, Math.max(1, Math.min(4, count))).map((role, i) => ({ name: `Player ${i + 1}`, role }));
+  ROLE_ORDER.slice(0, Math.max(1, Math.min(4, count))).map((role, i) => ({ name: t('state.player', { i: i + 1 }), role }));
 
 const seed0 = initialSeed();
 
@@ -206,17 +207,17 @@ export const useGame = create<GameState>((set, get) => ({
 
 export const SCENE_ORDER: SceneId[] = ['intro', 'briefing', 'designer', 'launch', 'readiness', 'operations', 'debrief'];
 export const STAGES: { id: SceneId; label: string }[] = [
-  { id: 'briefing', label: 'Briefing' },
-  { id: 'designer', label: 'Design' },
-  { id: 'launch', label: 'Launch plan' },
-  { id: 'readiness', label: 'Readiness' },
-  { id: 'operations', label: 'Operations' },
-  { id: 'debrief', label: 'Debrief' },
+  { id: 'briefing', get label() { return t('state.stages.briefing.label'); } },
+  { id: 'designer', get label() { return t('state.stages.designer.label'); } },
+  { id: 'launch', get label() { return t('state.stages.launch.label'); } },
+  { id: 'readiness', get label() { return t('state.stages.readiness.label'); } },
+  { id: 'operations', get label() { return t('state.stages.operations.label'); } },
+  { id: 'debrief', get label() { return t('state.stages.debrief.label'); } },
 ];
 
 export const ROLES: Record<RoleId, { label: string; short: string; focus: string }> = {
-  director: { label: 'Mission Director', short: 'DIR', focus: 'Confirms the team’s final answer.' },
-  engineer: { label: 'Spacecraft Engineer', short: 'ENG', focus: 'Owns mass, power and propulsion.' },
-  science: { label: 'Science Lead', short: 'SCI', focus: 'Protects the science objective.' },
-  comms: { label: 'Communications & Resources', short: 'COM', focus: 'Owns data, link and budget.' },
+  director: { get label() { return t('state.roles.director.label'); }, get short() { return t('state.roles.director.short'); }, get focus() { return t('state.roles.director.focus'); } },
+  engineer: { get label() { return t('state.roles.engineer.label'); }, get short() { return t('state.roles.engineer.short'); }, get focus() { return t('state.roles.engineer.focus'); } },
+  science: { get label() { return t('state.roles.science.label'); }, get short() { return t('state.roles.science.short'); }, get focus() { return t('state.roles.science.focus'); } },
+  comms: { get label() { return t('state.roles.comms.label'); }, get short() { return t('state.roles.comms.short'); }, get focus() { return t('state.roles.comms.focus'); } },
 };

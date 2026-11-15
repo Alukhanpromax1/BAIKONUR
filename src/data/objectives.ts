@@ -1,4 +1,5 @@
 import type { ObjectiveId } from '@/types';
+import { t } from '@/i18n';
 
 export interface Objective {
   id: ObjectiveId;
@@ -18,28 +19,28 @@ export interface Objective {
 export const OBJECTIVES: Objective[] = [
   {
     id: 'climate',
-    name: 'Climate record',
-    question: 'How does the atmosphere change through the Martian seasons?',
-    description: 'Build a season-by-season record of temperature, dust and ice at every height.',
-    needs: 'Vertical profiles and a full Mars year matter most.',
+    get name() { return t('objective.objectives.climate.name'); },
+    get question() { return t('objective.objectives.climate.question'); },
+    get description() { return t('objective.objectives.climate.description'); },
+    get needs() { return t('objective.objectives.climate.needs'); },
     weights: { profiling: 0.45, mapping: 0.1, seasons: 0.35, diurnal: 0.1 },
     stormBonus: 0.03,
   },
   {
     id: 'dust',
-    name: 'Dust storm watch',
-    question: 'Where do dust storms start, and how do they grow?',
-    description: 'Catch storms as they form and follow them across the planet day by day.',
-    needs: 'Sharp daily global maps matter most; vertical dust profiles add depth.',
+    get name() { return t('objective.objectives.dust.name'); },
+    get question() { return t('objective.objectives.dust.question'); },
+    get description() { return t('objective.objectives.dust.description'); },
+    get needs() { return t('objective.objectives.dust.needs'); },
     weights: { profiling: 0.25, mapping: 0.45, seasons: 0.2, diurnal: 0.1 },
     stormBonus: 0.08,
   },
   {
     id: 'clouds',
-    name: 'Clouds & water cycle',
-    question: 'How do water-ice clouds form and fade during a Martian day?',
-    description: 'Follow clouds and water vapour from dawn to dusk across the whole disc.',
-    needs: 'Seeing many times of day matters most, with both maps and profiles.',
+    get name() { return t('objective.objectives.clouds.name'); },
+    get question() { return t('objective.objectives.clouds.question'); },
+    get description() { return t('objective.objectives.clouds.description'); },
+    get needs() { return t('objective.objectives.clouds.needs'); },
     weights: { profiling: 0.25, mapping: 0.25, seasons: 0.15, diurnal: 0.35 },
     stormBonus: 0.03,
   },

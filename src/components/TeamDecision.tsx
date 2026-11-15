@@ -1,4 +1,6 @@
 import { Check } from 'lucide-react';
+import { t } from '@/i18n';
+import { T } from '@/i18n/Trans';
 import { useState } from 'react';
 import { sfx } from '@/audio/sound';
 import { ROLES, useGame } from '@/game/state/store';
@@ -72,7 +74,7 @@ export function TeamDecision({ choices, confirmLabel, onConfirm, initial, testId
     <div className="decision stack" data-testid={testId}>
       {team && (
         <div className="decision__team">
-          <span className="eyebrow eyebrow--muted">{proposing ? 'Each role proposes — pass the device' : split ? 'The team is split — Mission Director decides' : 'The team agrees — Mission Director confirms'}</span>
+          <span className="eyebrow eyebrow--muted">{proposing ? t('team.each_role_proposes_pass_the_device') : split ? t('team.the_team_is_split_mission_director') : t('team.the_team_agrees_mission_director_confirms')}</span>
           <div className="row row--wrap" style={{ gap: 6, marginTop: 8 }}>
             {players.map((p, i) => (
               <button
@@ -83,7 +85,7 @@ export function TeamDecision({ choices, confirmLabel, onConfirm, initial, testId
                   setTurn(i);
                   setProposals({ ...proposals, [p.role]: undefined });
                 }}
-                title={`${ROLES[p.role].label} — tap to propose again`}
+                title={t('team.tap_to_propose_again', { role: ROLES[p.role].label })}
               >
                 {proposals[p.role] ? <Check size={12} /> : <span className="seat__dot" />}
                 <b>{p.name}</b>
@@ -93,7 +95,7 @@ export function TeamDecision({ choices, confirmLabel, onConfirm, initial, testId
           </div>
           {proposing && (
             <div className="small" style={{ marginTop: 8 }}>
-              <b className="cyan">{current.name}</b> ({ROLES[current.role].label}), what do you propose?
+              <T k="team.your_turn" params={{ name: current.name, role: ROLES[current.role].label }} tags={{ b: (c) => <b className="cyan">{c}</b> }} />
             </div>
           )}
         </div>
@@ -108,9 +110,9 @@ export function TeamDecision({ choices, confirmLabel, onConfirm, initial, testId
               <div className="option__top">
                 <span className="option__name">{c.title}</span>
                 <span className="row" style={{ gap: 4 }}>
-                  {guided && c.recommended && <span className="tag tag--cyan">Suggested</span>}
+                  {guided && c.recommended && <span className="tag tag--cyan">{t('team.suggested')}</span>}
                   {v.map((p) => (
-                    <span key={p.role} className="tag" title={`${p.name} proposes this`}>
+                    <span key={p.role} className="tag" title={t('team.proposes_this', { p: p.name })}>
                       {ROLES[p.role].short}
                     </span>
                   ))}
@@ -137,7 +139,7 @@ export function TeamDecision({ choices, confirmLabel, onConfirm, initial, testId
               setTurn(0);
             }}
           >
-            Skip the discussion
+            {t('team.skip_the_discussion')}
           </button>
         )}
       </div>

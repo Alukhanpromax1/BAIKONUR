@@ -1,4 +1,5 @@
 import type { BudgetSummary } from '@/game/engine/budget';
+import { t } from '@/i18n';
 import type { MassSummary } from '@/game/engine/mass';
 import type { ScienceBreakdown } from '@/game/engine/science';
 import { CHOICE_LABEL, type OpsDecisionReview } from '@/game/ops/evaluate';
@@ -9,11 +10,11 @@ import type { MissionRecord } from './score';
 export type MistakeType = 'False Positive' | 'False Negative' | 'Poor Data Validation' | 'Resource Mismanagement' | 'Poor Risk Assessment';
 
 export const MISTAKE_DEFINITIONS: Record<MistakeType, string> = {
-  'False Positive': 'Treating a harmless signal as a real problem — a false alarm that costs time and money.',
-  'False Negative': 'Missing a real problem because the warning was dismissed.',
-  'Poor Data Validation': 'Trusting a measurement without checking where it came from or whether other data agrees.',
-  'Resource Mismanagement': 'Running out of — or wasting — mass, power, data capacity or budget.',
-  'Poor Risk Assessment': 'Accepting a risk without knowing how likely or how serious it is.',
+  get 'False Positive'() { return t('mistake.mistake_definitions.false_positive'); },
+  get 'False Negative'() { return t('mistake.mistake_definitions.false_negative'); },
+  get 'Poor Data Validation'() { return t('mistake.mistake_definitions.poor_data_validation'); },
+  get 'Resource Mismanagement'() { return t('mistake.mistake_definitions.resource_mismanagement'); },
+  get 'Poor Risk Assessment'() { return t('mistake.mistake_definitions.poor_risk_assessment'); },
 };
 
 export interface Mistake {
@@ -43,8 +44,8 @@ interface Context {
   dataReturnFraction: number;
 }
 
-const PRIMARY_LABEL = { hold: 'Hold and investigate the hardware', cross: 'Cross-validate the evidence', proceed: 'Proceed with the countdown' } as const;
-const CALL_LABEL = { scrub: 'recommend a scrub for hardware inspection', resync: 'switch to the backup telemetry path and resume', resume: 'resume the count and keep watching' } as const;
+const PRIMARY_LABEL = { get hold() { return t('mistake.primary_label.hold'); }, get cross() { return t('mistake.primary_label.cross'); }, get proceed() { return t('mistake.primary_label.proceed'); } } as const;
+const CALL_LABEL = { get scrub() { return t('mistake.call_label.scrub'); }, get resync() { return t('mistake.call_label.resync'); }, get resume() { return t('mistake.call_label.resume'); } } as const;
 
 /** Turns the mission record into plain-language lessons. Deterministic. */
 export function findMistakes(ctx: Context): Mistake[] {
@@ -54,61 +55,61 @@ export function findMistakes(ctx: Context): Mistake[] {
   const truth = SCENARIO_TRUTH[r.scenario];
   const viewed = readiness.evidenceQuality;
   const decisionText = r.choice === 'cross' ? `${PRIMARY_LABEL.cross}, then ${CALL_LABEL[r.finalCall ?? 'resume']}.` : `${PRIMARY_LABEL[r.choice]}.`;
-  const evidenceSeen = r.choice === 'cross' ? 'All three evidence panels were reviewed.' : viewed === 0 ? 'No evidence panel was opened before deciding.' : `${viewed} of 3 evidence panels were opened before deciding.`;
+  const evidenceSeen = r.choice === 'cross' ? t('mistake.all_three_evidence_panels_were_reviewed') : viewed === 0 ? t('mistake.no_evidence_panel_was_opened_before') : t('mistake.of_3_evidence_panels_were_opened', { viewed });
 
   if (readiness.verdict === 'false-positive') {
     out.push({
       type: 'False Positive',
-      title: 'The countdown was stopped for a problem that was not there',
+      title: t('mistake.the_countdown_was_stopped_for_a'),
       decision: decisionText,
-      evidence: `${evidenceSeen} The clue that was available: ${truth.clue}`,
-      misunderstanding: r.scenario === 'data-chain' ? 'A fault in how the data was delivered and processed was read as a fault in the hardware.' : 'One abnormal sample was treated as proof of a physical failure.',
-      consequence: `Launch slipped ${readiness.slipDays} days and cost ${readiness.costCr} credits for an inspection that found nothing.`,
-      lesson: 'An alarm tells you where to look, not what is true. Check whether independent measurements agree before acting on one of them.',
+      evidence: t('mistake.the_clue_that_was_available', { evidenceSeen, clue: truth.clue }),
+      misunderstanding: r.scenario === 'data-chain' ? t('mistake.a_fault_in_how_the_data') : t('mistake.one_abnormal_sample_was_treated_as'),
+      consequence: t('mistake.launch_slipped_days_and_cost_credits', { slipDays: readiness.slipDays, costCr: readiness.costCr }),
+      lesson: t('mistake.an_alarm_tells_you_where_to'),
     });
   }
   if (readiness.verdict === 'false-negative') {
     out.push({
       type: 'False Negative',
-      title: 'A real leak was treated as if it were harmless',
+      title: t('mistake.a_real_leak_was_treated_as'),
       decision: decisionText,
-      evidence: `${evidenceSeen} The clue that was available: ${truth.clue}`,
-      misunderstanding: 'A persistent trend confirmed by two independent sensors is not noise. Each sensor could be wrong alone; both wrong in the same way at the same time is very unlikely.',
-      consequence: `The Flight Director’s safety rule stopped the count at T−10 s. Launch slipped ${readiness.slipDays} days and cost ${readiness.costCr} credits.`,
-      lesson: 'When independent sensors tell the same story, believe the story. Safety rules are the last line of defence — good decisions should not need them.',
+      evidence: t('mistake.the_clue_that_was_available', { evidenceSeen, clue: truth.clue }),
+      misunderstanding: t('mistake.a_persistent_trend_confirmed_by_two'),
+      consequence: t('mistake.the_flight_directors_safety_rule_stopped', { slipDays: readiness.slipDays, costCr: readiness.costCr }),
+      lesson: t('mistake.when_independent_sensors_tell_the_same'),
     });
   }
   if (readiness.verdict === 'misdiagnosed') {
     out.push({
       type: 'Poor Data Validation',
-      title: 'The evidence was checked, but the cause was misread',
+      title: t('mistake.the_evidence_was_checked_but_the'),
       decision: decisionText,
-      evidence: `All three panels were reviewed. The clue that was available: ${truth.clue}`,
-      misunderstanding: r.scenario === 'data-chain' ? 'Packet gaps, duplicates and a raw-versus-processed mismatch point to the data chain, not to random sensor noise.' : 'The packet log was clean and raw counts matched the processed values, so the data chain was not the cause.',
-      consequence: readiness.degradedLinkDays ? `The unfixed data path garbled part of the downlink for the first ${readiness.degradedLinkDays} days at Mars.` : 'No harm this time — but the real cause went unrecorded, so the same glitch could confuse the next team.',
-      lesson: 'Ask two questions of every strange reading: “Is the sensor right?” and “Did the number reach me unchanged?” They have different answers and different fixes.',
+      evidence: t('mistake.all_three_panels_were_reviewed_the', { clue: truth.clue }),
+      misunderstanding: r.scenario === 'data-chain' ? t('mistake.packet_gaps_duplicates_and_a_raw') : t('mistake.the_packet_log_was_clean_and'),
+      consequence: readiness.degradedLinkDays ? t('mistake.the_unfixed_data_path_garbled_part', { degradedLinkDays: readiness.degradedLinkDays }) : t('mistake.no_harm_this_time_but_the'),
+      lesson: t('mistake.ask_two_questions_of_every_strange'),
     });
   }
   if ((readiness.verdict === 'lucky' || readiness.verdict === 'right-thin-evidence') && viewed < 2) {
     out.push({
       type: 'Poor Data Validation',
-      title: 'The decision was made before the evidence was read',
+      title: t('mistake.the_decision_was_made_before_the'),
       decision: decisionText,
-      evidence: `${evidenceSeen} Sensor comparison, raw telemetry and trend analysis were all one click away.`,
-      misunderstanding: 'The outcome was acceptable, so the decision feels right — but with the information you had, the opposite result was just as possible.',
-      consequence: readiness.verdict === 'lucky' ? 'The mission continued by good fortune rather than good judgement.' : 'The hold was correct, but it could not have been justified to the Flight Director.',
-      lesson: 'Judge a decision by what you knew when you made it, not by how it turned out.',
+      evidence: t('mistake.sensor_comparison_raw_telemetry_and_trend', { evidenceSeen }),
+      misunderstanding: t('mistake.the_outcome_was_acceptable_so_the'),
+      consequence: readiness.verdict === 'lucky' ? t('mistake.the_mission_continued_by_good_fortune') : t('mistake.the_hold_was_correct_but_it'),
+      lesson: t('mistake.judge_a_decision_by_what_you'),
     });
   }
   if (r.choice === 'proceed' && readiness.verdict !== 'correct') {
     out.push({
       type: 'Poor Risk Assessment',
-      title: 'The countdown continued with an unexplained alarm',
+      title: t('mistake.the_countdown_continued_with_an_unexplained'),
       decision: decisionText,
-      evidence: `${evidenceSeen} Two engineers disagreed about the cause, and neither view had been tested.`,
-      misunderstanding: 'An unexplained alarm is an unknown risk. “Probably fine” is a guess until the evidence says so.',
-      consequence: readiness.verdict === 'false-negative' ? 'A real leak reached the final seconds of the count before a safety rule caught it.' : 'Nothing failed at launch, but the risk was accepted without being understood.',
-      lesson: 'Before accepting a risk, be able to say what the alarm is — not only what you hope it is.',
+      evidence: t('mistake.two_engineers_disagreed_about_the_cause', { evidenceSeen }),
+      misunderstanding: t('mistake.an_unexplained_alarm_is_an_unknown'),
+      consequence: readiness.verdict === 'false-negative' ? t('mistake.a_real_leak_reached_the_final') : t('mistake.nothing_failed_at_launch_but_the'),
+      lesson: t('mistake.before_accepting_a_risk_be_able'),
     });
   }
 
@@ -118,32 +119,32 @@ export function findMistakes(ctx: Context): Mistake[] {
     if (review.event === 'conjunction' && review.choice === 'command') {
       out.push({
         type: 'Poor Risk Assessment',
-        title: 'Commands were sent through the Sun’s interference',
+        title: t('mistake.commands_were_sent_through_the_suns'),
         decision,
         evidence: review.evidence,
-        misunderstanding: 'A weak signal is not the only danger near the Sun: a corrupted command can be worse than no command at all.',
-        consequence: 'The spacecraft entered safe mode and lost ten days of science after the blackout.',
-        lesson: 'Sometimes the safest action is to wait. Plan ahead so the spacecraft can look after itself while you cannot talk to it.',
+        misunderstanding: t('mistake.a_weak_signal_is_not_the'),
+        consequence: t('mistake.the_spacecraft_entered_safe_mode_and'),
+        lesson: t('mistake.sometimes_the_safest_action_is_to'),
       });
     } else if (review.points <= 1) {
       out.push({
         type: review.event === 'power' ? 'Poor Risk Assessment' : 'Resource Mismanagement',
-        title: review.event === 'power' ? 'Full operations with too little power margin' : review.event === 'storm' ? 'More data was collected than could be returned' : 'The recorder overflowed during the blackout',
+        title: review.event === 'power' ? t('mistake.full_operations_with_too_little_power') : review.event === 'storm' ? t('mistake.more_data_was_collected_than_could') : t('mistake.the_recorder_overflowed_during_the_blackout'),
         decision,
         evidence: review.evidence,
-        misunderstanding: review.event === 'power' ? 'An average margin near zero is not “enough”: heaters and transmitters peak above the average.' : 'Collected data only counts as science once it reaches Earth. Recorder space and link speed set the real limit.',
+        misunderstanding: review.event === 'power' ? t('mistake.an_average_margin_near_zero_is') : t('mistake.collected_data_only_counts_as_science'),
         consequence: review.why,
-        lesson: review.event === 'power' ? 'Margins exist for the bad days. Spend them deliberately, not by accident.' : 'Match what you collect to what you can store and send. The better option here was: ' + CHOICE_LABEL[review.best].toLowerCase() + '.',
+        lesson: review.event === 'power' ? t('mistake.margins_exist_for_the_bad_days') : t('mistake.match_what_you_collect_to_what') + CHOICE_LABEL[review.best].toLowerCase() + '.',
       });
     } else {
       out.push({
         type: 'Resource Mismanagement',
-        title: review.event === 'power' ? 'More power was saved than necessary' : review.event === 'storm' ? 'Spare capacity went unused during the storm' : 'Observations were cut although the recorder had room',
+        title: review.event === 'power' ? t('mistake.more_power_was_saved_than_necessary') : review.event === 'storm' ? t('mistake.spare_capacity_went_unused_during_the') : t('mistake.observations_were_cut_although_the_recorder'),
         decision,
         evidence: review.evidence,
-        misunderstanding: 'Caution has a cost too. The numbers on the console showed room to do more.',
+        misunderstanding: t('mistake.caution_has_a_cost_too_the'),
         consequence: review.why,
-        lesson: 'Being careful means reading the margins, not avoiding every risk. The better option here was: ' + CHOICE_LABEL[review.best].toLowerCase() + '.',
+        lesson: t('mistake.being_careful_means_reading_the_margins') + CHOICE_LABEL[review.best].toLowerCase() + '.',
       });
     }
   }
@@ -152,34 +153,34 @@ export function findMistakes(ctx: Context): Mistake[] {
   if (designLost > sim.plannedMb * 0.03) {
     out.push({
       type: 'Resource Mismanagement',
-      title: 'The link could not keep up with the payload',
-      decision: 'Spacecraft design: payload, antenna and recorder as launched.',
-      evidence: `The payload produced ${Math.round(sim.nominalDailyMb)} Mb per day. The designer warned when the average downlink or the recorder was too small for it.`,
-      misunderstanding: 'An instrument’s value depends on the whole chain behind it — recorder, antenna, contact time and distance to Earth.',
-      consequence: `${(sim.lostMb / 1000).toFixed(1)} Gb of observations were overwritten on board before they could be sent.`,
-      lesson: 'Design the data path first: a smaller instrument whose data all reaches Earth beats a larger one whose data is lost.',
+      title: t('mistake.the_link_could_not_keep_up'),
+      decision: t('mistake.spacecraft_design_payload_antenna_and_recorder'),
+      evidence: t('mistake.the_payload_produced_mb_per_day', { nominalDailyMb: Math.round(sim.nominalDailyMb) }),
+      misunderstanding: t('mistake.an_instruments_value_depends_on_the'),
+      consequence: t('mistake.gb_of_observations_were_overwritten_on', { lostMb: (sim.lostMb / 1000).toFixed(1) }),
+      lesson: t('mistake.design_the_data_path_first_a'),
     });
   }
   if (!budget.ok) {
     out.push({
       type: 'Resource Mismanagement',
-      title: 'Launch-campaign costs pushed the mission over budget',
-      decision: 'A design that used almost the entire budget, followed by a costly countdown event.',
-      evidence: `Planned cost left ${budget.remainingCr + budget.eventsCr} credits of reserve; the countdown event cost ${budget.eventsCr}.`,
-      misunderstanding: 'A budget with no reserve assumes that nothing will ever go wrong.',
-      consequence: `The mission ended ${-budget.remainingCr} credits over budget.`,
-      lesson: 'Keep a reserve. Real projects hold back part of the budget for the surprises they cannot predict.',
+      title: t('mistake.launch_campaign_costs_pushed_the_mission'),
+      decision: t('mistake.a_design_that_used_almost_the'),
+      evidence: t('mistake.planned_cost_left_credits_of_reserve', { eventsCr: budget.remainingCr + budget.eventsCr, eventsCr2: budget.eventsCr }),
+      misunderstanding: t('mistake.a_budget_with_no_reserve_assumes'),
+      consequence: t('mistake.the_mission_ended_credits_over_budget', { remainingCr: -budget.remainingCr }),
+      lesson: t('mistake.keep_a_reserve_real_projects_hold'),
     });
   }
   if (mass.marginPct > 0.3) {
     out.push({
       type: 'Resource Mismanagement',
-      title: 'A larger rocket than the spacecraft needed',
-      decision: 'Launch vehicle selection.',
-      evidence: `The fuelled spacecraft weighed ${Math.round(mass.wetKg)} kg; the vehicle could lift ${mass.capacityKg} kg.`,
-      misunderstanding: 'Unused launch capacity is budget that could have bought science.',
-      consequence: `${Math.round(mass.marginPct * 100)} % of the launch capacity flew empty.`,
-      lesson: 'Size the launch vehicle to the spacecraft, with a small margin — not the other way round.',
+      title: t('mistake.a_larger_rocket_than_the_spacecraft'),
+      decision: t('mistake.launch_vehicle_selection'),
+      evidence: t('mistake.the_fuelled_spacecraft_weighed_kg_the', { wetKg: Math.round(mass.wetKg), capacityKg: mass.capacityKg }),
+      misunderstanding: t('mistake.unused_launch_capacity_is_budget_that'),
+      consequence: t('mistake.of_the_launch_capacity_flew_empty', { marginPct: Math.round(mass.marginPct * 100) }),
+      lesson: t('mistake.size_the_launch_vehicle_to_the'),
     });
   }
   return out;

@@ -1,4 +1,6 @@
 import { ArrowRight, FastForward, Pause, Play } from 'lucide-react';
+import { t } from '@/i18n';
+import { T } from '@/i18n/Trans';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { navigate } from '@/app/navigation';
 import { sfx } from '@/audio/sound';
@@ -18,7 +20,7 @@ import { worldState } from '@/three/state';
 
 const STEPS_PER_SECOND = 9;
 
-const EVENT_NAME: Record<OpsEventId, string> = { conjunction: 'Solar conjunction', power: 'Low-power season', storm: 'Dust storm' };
+const EVENT_NAME: Record<OpsEventId, string> = { get conjunction() { return t('ops.event_name.conjunction'); }, get power() { return t('ops.event_name.power'); }, get storm() { return t('ops.event_name.storm'); } };
 
 /** Scene 6 — the science phase at Mars, played in accelerated time with three decisions. */
 export default function MarsOperations() {
@@ -35,7 +37,7 @@ export default function MarsOperations() {
   const [started, setStarted] = useState(false);
   const [fast, setFast] = useState(false);
   const [pending, setPending] = useState<OpsEvent | null>(null);
-  const [log, setLog] = useState<{ day: number; text: string }[]>([]);
+  const [log, setLog] = useState<{ day: number; event: OpsEventId; choice: string }[]>([]);
   const ref = useReveal<HTMLDivElement>();
 
   const simOptions = useMemo(() => {
@@ -92,13 +94,13 @@ export default function MarsOperations() {
 
   const confirm = (event: OpsEvent, choice: string) => {
     setDecision({ [event.id]: choice });
-    setLog((l) => [{ day: step.day, text: `${EVENT_NAME[event.id]}: ${CHOICES[event.id].find((c) => c.id === choice)?.title}` }, ...l].slice(0, 4));
+    setLog((l) => [{ day: step.day, event: event.id, choice }, ...l].slice(0, 4));
     setPending(null);
     setRunning(true);
   };
 
   const payload = COMPONENT_BY_ID[design.selections.payload];
-  const linkState = finished ? 'COMPLETE' : step.safeMode ? 'SAFE MODE' : step.blackout ? 'BLACKOUT' : 'LINK UP';
+  const linkState = finished ? 'COMPLETE' : step.safeMode ? t('ops.safe_mode') : step.blackout ? 'BLACKOUT' : t('ops.link_up');
   const linkTone = step.safeMode ? 'coral' : step.blackout ? 'amber' : 'cyan';
   const progress = Math.min(1, index / total);
   const marginTone = step.marginPct < 0 ? 'over' : step.marginPct < POWER_MARGIN_RULE ? 'tight' : 'ok';
@@ -109,64 +111,64 @@ export default function MarsOperations() {
   return (
     <div className="ops" ref={ref}>
       <div className="ops__clock hit" data-reveal>
-        <div className="eyebrow">Mars operations · {ORBIT_BY_ID[design.orbit].name}</div>
+        <div className="eyebrow">{t('ops.mars_operations', { orbit: ORBIT_BY_ID[design.orbit].name })}</div>
         <div className="ops__date mono" data-testid="ops-date">{formatJd(step.jd)}</div>
         <div className="small muted">
-          Science day <b className="mono" style={{ color: 'var(--text)' }}>{Math.min(sim.timeline.scienceDays, step.day)}</b> of {sim.timeline.scienceDays} · {OBJECTIVE_BY_ID[design.objective].name}
+          <T k="ops.science_day" params={{ day: Math.min(sim.timeline.scienceDays, step.day), total: sim.timeline.scienceDays, objective: OBJECTIVE_BY_ID[design.objective].name }} tags={{ b: (c) => <b className="mono" style={{ color: 'var(--text)' }}>{c}</b> }} />
         </div>
-        <div className="xs dim">Time is accelerated for play: one second ≈ {STEPS_PER_SECOND * 2 * (fast ? 2.5 : 1)} days. Simplified educational orbit, not to scale.</div>
+        <div className="xs dim">{t('ops.time_is_accelerated_for_play_one', { fast: STEPS_PER_SECOND * 2 * (fast ? 2.5 : 1) })}</div>
       </div>
 
       <div className="ops__left" data-reveal>
         <div className="panel hud" data-status={marginTone}>
-          <div className="hud__head"><span className="eyebrow eyebrow--muted">Power</span><span className={`xs mono status-${marginTone}`}>{step.safeMode ? 'SAFE MODE' : step.powerMode === 'full' ? 'FULL OPS' : step.powerMode === 'cycle' ? 'DUTY-CYCLED' : 'DEEP SAVING'}</span></div>
-          <div className="hud__value mono" data-testid="ops-power">{Math.round(step.marginW) >= 0 ? '+' : '−'}{Math.abs(Math.round(step.marginW))} <small>W margin</small></div>
+          <div className="hud__head"><span className="eyebrow eyebrow--muted">{t('ops.power')}</span><span className={`xs mono status-${marginTone}`}>{step.safeMode ? t('ops.safe_mode') : step.powerMode === 'full' ? t('ops.full_ops') : step.powerMode === 'cycle' ? t('ops.duty_cycled') : t('ops.deep_saving')}</span></div>
+          <div className="hud__value mono" data-testid="ops-power">{Math.round(step.marginW) >= 0 ? '+' : '−'}{Math.abs(Math.round(step.marginW))} <small>{t('ops.w_margin')}</small></div>
           <div className={`meter__bar meter--${marginTone}`}><span className="meter__fill" style={{ transform: `scaleX(${Math.max(0.02, Math.min(1, step.consumptionW / step.availableW))})` }} /></div>
           <div className="hud__rows">
-            <div><span>Available</span><span>{Math.round(step.availableW)} W</span></div>
-            <div><span>In use</span><span>{Math.round(step.consumptionW)} W</span></div>
-            <div><span>Sun distance <ProvenanceTag kind="verified_nasa_data" label="JPL" /></span><span>{step.sunMarsAu.toFixed(3)} AU</span></div>
+            <div><span>{t('ops.available')}</span><span>{Math.round(step.availableW)} W</span></div>
+            <div><span>{t('ops.in_use')}</span><span>{Math.round(step.consumptionW)} W</span></div>
+            <div><span>{t('ops.sun_distance')}{' '} <ProvenanceTag kind="verified_nasa_data" label={t('ops.jpl')} /></span><span>{t('u.au', { n: step.sunMarsAu.toFixed(3) })}</span></div>
           </div>
         </div>
         <div className="panel hud" data-status={storedTone}>
-          <div className="hud__head"><span className="eyebrow eyebrow--muted">Data recorder</span><span className={`xs mono status-${storedTone}`}>{storedTone === 'over' ? 'FULL — OVERWRITING' : storedTone === 'tight' ? 'FILLING' : 'OK'}</span></div>
+          <div className="hud__head"><span className="eyebrow eyebrow--muted">{t('ops.data_recorder')}</span><span className={`xs mono status-${storedTone}`}>{storedTone === 'over' ? t('ops.full_overwriting') : storedTone === 'tight' ? t('ops.filling') : t('ops.ok')}</span></div>
           <div className="hud__value mono" data-testid="ops-stored">{formatData(step.storedMb)} <small>/ {formatData(sim.capacityMb)}</small></div>
           <div className={`meter__bar meter--${storedTone}`}><span className="meter__fill" style={{ transform: `scaleX(${Math.max(0.02, Math.min(1, step.storedMb / sim.capacityMb))})` }} /></div>
           <div className="hud__rows">
-            <div><span>Collecting</span><span>{Math.round(step.generatedMb / sim.stepDays)} Mb/day</span></div>
-            <div><span>Link can carry</span><span>{Math.round(step.downlinkCapacityMb / sim.stepDays)} Mb/day</span></div>
-            <div><span>Lost so far</span><span className={step.totalLostMb > 0 ? 'coral' : ''}>{formatData(step.totalLostMb)}</span></div>
+            <div><span>{t('ops.collecting')}</span><span>{t('u.mbday', { n: Math.round(step.generatedMb / sim.stepDays) })}</span></div>
+            <div><span>{t('ops.link_can_carry')}</span><span>{t('u.mbday', { n: Math.round(step.downlinkCapacityMb / sim.stepDays) })}</span></div>
+            <div><span>{t('ops.lost_so_far')}</span><span className={step.totalLostMb > 0 ? 'coral' : ''}>{formatData(step.totalLostMb)}</span></div>
           </div>
         </div>
       </div>
 
       <div className="ops__right" data-reveal>
         <div className="panel hud">
-          <div className="hud__head"><span className="eyebrow eyebrow--muted">Communications</span><span className={`xs mono ${linkTone}`} data-testid="ops-link">{linkState}</span></div>
+          <div className="hud__head"><span className="eyebrow eyebrow--muted">{t('ops.communications')}</span><span className={`xs mono ${linkTone}`} data-testid="ops-link">{linkState}</span></div>
           <div className="hud__value mono">{formatRate(step.rateKbps)}</div>
           <div className="hud__rows">
-            <div><span>One-way <Term k="light time">signal delay</Term></span><span data-testid="ops-lighttime">{formatLightTime(step.lightTimeS)}</span></div>
-            <div><span>Round trip</span><span>{formatLightTime(roundTripS(step.lightTimeS))}</span></div>
-            <div><span>Earth distance <ProvenanceTag kind="verified_nasa_data" label="JPL" /></span><span>{step.earthMarsAu.toFixed(3)} AU</span></div>
-            {advanced && <div><span>Sun–Earth–Mars angle</span><span>{step.sepDeg.toFixed(1)}°</span></div>}
+            <div><span><T k="ops.one_way_delay" tags={{ lt: (c) => <Term k="light time">{c}</Term> }} /></span><span data-testid="ops-lighttime">{formatLightTime(step.lightTimeS)}</span></div>
+            <div><span>{t('ops.round_trip')}</span><span>{formatLightTime(roundTripS(step.lightTimeS))}</span></div>
+            <div><span>{t('ops.earth_distance')}{' '} <ProvenanceTag kind="verified_nasa_data" label={t('ops.jpl')} /></span><span>{t('u.au', { n: step.earthMarsAu.toFixed(3) })}</span></div>
+            {advanced && <div><span>{t('ops.sun_earth_mars_angle')}</span><span>{step.sepDeg.toFixed(1)}°</span></div>}
           </div>
         </div>
         <div className="panel hud">
-          <div className="hud__head"><span className="eyebrow eyebrow--muted">Science</span><span className="xs mono muted">{payload.short}</span></div>
-          <div className="hud__value mono" data-testid="ops-science">{sciencePct.toFixed(0)} <small>% of planned data on Earth</small></div>
+          <div className="hud__head"><span className="eyebrow eyebrow--muted">{t('ops.science')}</span><span className="xs mono muted">{payload.short}</span></div>
+          <div className="hud__value mono" data-testid="ops-science">{sciencePct.toFixed(0)} <small>{t('ops.of_planned_data_on_earth')}</small></div>
           <div className="meter__bar"><span className="meter__fill" style={{ transform: `scaleX(${Math.max(0.02, sciencePct / 100)})` }} /></div>
           <div className="hud__rows">
-            <div><span>Returned</span><span>{formatData(returnedSoFar)}</span></div>
-            <div><span>Planned total</span><span>{formatData(sim.plannedMb)}</span></div>
+            <div><span>{t('ops.returned')}</span><span>{formatData(returnedSoFar)}</span></div>
+            <div><span>{t('ops.planned_total')}</span><span>{formatData(sim.plannedMb)}</span></div>
           </div>
         </div>
         {log.length > 0 && (
           <div className="panel panel--plain hud">
-            <div className="eyebrow eyebrow--muted">Decision log</div>
+            <div className="eyebrow eyebrow--muted">{t('ops.decision_log')}</div>
             {log.map((l) => (
-              <div key={l.text} className="xs" style={{ marginTop: 6 }}>
-                <span className="mono dim">Day {l.day} · </span>
-                {l.text}
+              <div key={l.event} className="xs" style={{ marginTop: 6 }}>
+                <span className="mono dim">{t('ops.day', { day: l.day })} </span>
+                {EVENT_NAME[l.event]}: {CHOICES[l.event].find((c) => c.id === l.choice)?.title}
               </div>
             ))}
           </div>
@@ -175,13 +177,13 @@ export default function MarsOperations() {
 
       <div className="ops__bottom panel hit" data-reveal>
         <div className="row">
-          <button type="button" className="icon-btn" onClick={() => { sfx.click(); setRunning((r) => !r); }} disabled={!started || finished || !!pending} aria-label={running ? 'Pause' : 'Play'} data-testid="ops-play">
+          <button type="button" className="icon-btn" onClick={() => { sfx.click(); setRunning((r) => !r); }} disabled={!started || finished || !!pending} aria-label={running ? t('ops.pause') : t('ops.play')} data-testid="ops-play">
             {running ? <Pause size={18} /> : <Play size={18} />}
           </button>
-          <button type="button" className="icon-btn" onClick={() => { sfx.click(); setFast((f) => !f); }} aria-pressed={fast} aria-label="Faster playback" title="Faster playback" data-testid="ops-fast">
+          <button type="button" className="icon-btn" onClick={() => { sfx.click(); setFast((f) => !f); }} aria-pressed={fast} aria-label={t('ops.faster_playback')} title={t('ops.faster_playback')} data-testid="ops-fast">
             <FastForward size={18} />
           </button>
-          <div className="track grow" aria-label="Mission timeline">
+          <div className="track grow" aria-label={t('ops.mission_timeline')}>
             <span className="track__fill" style={{ transform: `scaleX(${progress})` }} />
             {sim.events.map((e, i) => (
               <span key={e.id} className={`track__event ${decided(e.id) ? 'is-done' : ''} ${i % 2 ? 'track__event--low' : ''}`} style={{ left: `${(e.promptStep / total) * 100}%` }} title={EVENT_NAME[e.id]}>
@@ -197,21 +199,20 @@ export default function MarsOperations() {
         <div className="ops__modal">
           <div className="panel dialog scroll" data-testid="ops-start">
             <div className="panel__body stack">
-              <div className="eyebrow">KAZMARS-1 has arrived · {formatJd(sim.timeline.scienceStartJd)}</div>
-              <h1 className="title">The science phase begins</h1>
+              <div className="eyebrow">{t('ops.kazmars_1_has_arrived', { scienceStartJd: formatJd(sim.timeline.scienceStartJd) })}</div>
+              <h1 className="title">{t('ops.the_science_phase_begins')}</h1>
               <p className="muted">
-                Your spacecraft now runs for {sim.timeline.scienceDays} days in accelerated time. Three situations will need a decision from you. Each depends on
-                what you built — so read the gauges before you choose.
+                {t('ops.your_spacecraft_now_runs_for_days', { scienceDays: sim.timeline.scienceDays })}
               </p>
               <ul className="plain-list small">
-                <li><b>Power</b> — margin between what the arrays deliver and what the spacecraft uses.</li>
-                <li><b>Data recorder</b> — how full the on-board memory is.</li>
-                <li><b>Communications</b> — link speed and the real Earth–Mars signal delay.</li>
-                <li><b>Science</b> — how much of the planned data has reached Earth.</li>
+                <li><T k="ops.gauge_power" /></li>
+                <li><T k="ops.gauge_recorder" /></li>
+                <li><T k="ops.gauge_comms" /></li>
+                <li><T k="ops.gauge_science" /></li>
               </ul>
-              <p className="xs muted">Distances, signal delay and the March 2028 solar conjunction come from NASA/JPL Horizons (cached snapshot). Everything else is a simplified educational model.</p>
+              <p className="xs muted">{t('ops.distances_signal_delay_and_the_march')}</p>
               <button type="button" className="btn btn--lg" onClick={() => { sfx.confirm(); setStarted(true); setRunning(true); }} data-testid="ops-begin">
-                Begin operations <ArrowRight size={16} />
+                {t('ops.begin_operations')}{' '} <ArrowRight size={16} />
               </button>
             </div>
           </div>
@@ -223,11 +224,10 @@ export default function MarsOperations() {
           <div className="panel panel--amber dialog scroll" role="alertdialog" aria-label={EVENT_NAME[pending.id]} data-testid={`ops-event-${pending.id}`}>
             <div className="panel__body stack">
               <EventBrief event={pending} sim={sim} step={step} />
-              <TeamDecision testId="ops" choices={CHOICES[pending.id]} confirmLabel="Send the plan" onConfirm={(id) => confirm(pending, id)} />
+              <TeamDecision testId="ops" choices={CHOICES[pending.id]} confirmLabel={t('ops.send_the_plan')} onConfirm={(id) => confirm(pending, id)} />
               {guided && <Coach who={HINT[pending.id].who}>{HINT[pending.id].text}</Coach>}
               <p className="xs muted">
-                Your command reaches Mars {formatLightTime(step.lightTimeS)} after you send it, and the confirmation takes as long to return — so the spacecraft
-                must already hold a safe plan.
+                {t('ops.your_command_reaches_mars_after_you', { lightTimeS: formatLightTime(step.lightTimeS) })}
               </p>
             </div>
           </div>
@@ -238,14 +238,13 @@ export default function MarsOperations() {
         <div className="ops__modal">
           <div className="panel dialog" data-testid="ops-complete">
             <div className="panel__body stack">
-              <div className="eyebrow">Science phase complete · {formatJd(sim.timeline.scienceEndJd)}</div>
-              <h1 className="title">KAZMARS-1 has finished its mission</h1>
+              <div className="eyebrow">{t('ops.science_phase_complete', { scienceEndJd: formatJd(sim.timeline.scienceEndJd) })}</div>
+              <h1 className="title">{t('ops.kazmars_1_has_finished_its_mission')}</h1>
               <p className="muted">
-                {formatData(sim.returnedMb)} of data reached Earth{sim.lostMb > 0 ? `, ${formatData(sim.lostMb)} was lost on board` : ' and nothing was lost'}
-                {sim.safeModeDays > 0 ? `, and ${sim.safeModeDays} days were spent in safe mode` : ''}. Time to see what it all added up to.
+                {t('ops.complete_returned', { data: formatData(sim.returnedMb) })} {sim.lostMb > 0 ? t('ops.complete_lost', { data: formatData(sim.lostMb) }) : t('ops.complete_no_loss')} {sim.safeModeDays > 0 ? t('ops.complete_safe', { n: sim.safeModeDays }) : ''} {t('ops.complete_next')}
               </p>
               <button type="button" className="btn btn--lg" onClick={() => navigate('debrief')} data-testid="to-debrief">
-                Open the mission debrief <ArrowRight size={16} />
+                {t('ops.open_the_mission_debrief')}{' '} <ArrowRight size={16} />
               </button>
             </div>
           </div>
@@ -257,26 +256,26 @@ export default function MarsOperations() {
 
 const CHOICES: Record<OpsEventId, Choice[]> = {
   conjunction: [
-    { id: 'store', title: 'Keep observing and store everything', text: 'Record at the full rate and send it all after the blackout. Works only if the recorder is big enough.' },
-    { id: 'reduce', title: 'Observe less during the blackout', text: 'Keep only the most valuable 40 % of observations so the recorder does not overflow.' },
-    { id: 'command', title: 'Keep commanding through the blackout', text: 'Try to stay in contact anyway, sending commands past the Sun.' },
+    { id: 'store', get title() { return t('ops.choices.conjunction.store.title'); }, get text() { return t('ops.choices.conjunction.store.text'); } },
+    { id: 'reduce', get title() { return t('ops.choices.conjunction.reduce.title'); }, get text() { return t('ops.choices.conjunction.reduce.text'); } },
+    { id: 'command', get title() { return t('ops.choices.conjunction.command.title'); }, get text() { return t('ops.choices.conjunction.command.text'); } },
   ],
   power: [
-    { id: 'full', title: 'Continue full operations', text: 'Change nothing. Right if the margin stays above the 5 % flight rule.' },
-    { id: 'cycle', title: 'Duty-cycle instruments and radio', text: 'Use 12 % less power. Costs about 30 % of the data during this season.' },
-    { id: 'reserve', title: 'Deep power saving', text: 'Use 22 % less power. Costs about 70 % of the data during this season.' },
+    { id: 'full', get title() { return t('ops.choices.power.full.title'); }, get text() { return t('ops.choices.power.full.text'); } },
+    { id: 'cycle', get title() { return t('ops.choices.power.cycle.title'); }, get text() { return t('ops.choices.power.cycle.text'); } },
+    { id: 'reserve', get title() { return t('ops.choices.power.reserve.title'); }, get text() { return t('ops.choices.power.reserve.text'); } },
   ],
   storm: [
-    { id: 'campaign', title: 'Run a high-rate storm campaign', text: `Collect 1.8× the data for ${STORM_DAYS} days. Great science — if the link and recorder can take it.` },
-    { id: 'nominal', title: 'Continue the normal plan', text: 'Observe the storm at the usual rate.' },
-    { id: 'protect', title: 'Cut data to protect the recorder', text: `Halve the data rate for ${STORM_DAYS} days to keep memory free.` },
+    { id: 'campaign', get title() { return t('ops.choices.storm.campaign.title'); }, get text() { return t('ops.choices.storm.campaign.text', { STORM_DAYS }); } },
+    { id: 'nominal', get title() { return t('ops.choices.storm.nominal.title'); }, get text() { return t('ops.choices.storm.nominal.text'); } },
+    { id: 'protect', get title() { return t('ops.choices.storm.protect.title'); }, get text() { return t('ops.choices.storm.protect.text', { STORM_DAYS }); } },
   ],
 };
 
 const HINT: Record<OpsEventId, { who: 'arman' | 'dana'; text: string }> = {
-  conjunction: { who: 'dana', text: 'Compare the free space on the recorder with what a full-rate blackout would produce. If it fits, store it. If not, choose what to keep.' },
-  power: { who: 'arman', text: 'Flight rule: at least 5 % margin. Pick the gentlest mode that still keeps it — saving more than you need throws science away.' },
-  storm: { who: 'dana', text: 'Extra data only counts if it gets home. Is the link carrying more than we collect, and is there room on the recorder?' },
+  conjunction: { who: 'dana', get text() { return t('ops.hint.conjunction.text'); } },
+  power: { who: 'arman', get text() { return t('ops.hint.power.text'); } },
+  storm: { who: 'dana', get text() { return t('ops.hint.storm.text'); } },
 };
 
 function EventBrief({ event, sim, step }: { event: OpsEvent; sim: SimResult; step: SimStep }) {
@@ -287,17 +286,16 @@ function EventBrief({ event, sim, step }: { event: OpsEvent; sim: SimResult; ste
   if (event.id === 'conjunction') {
     return (
       <>
-        <div className="eyebrow eyebrow--amber">Decision · real geometry from JPL Horizons</div>
-        <h1 className="title">Mars is about to pass behind the Sun</h1>
+        <div className="eyebrow eyebrow--amber">{t('ops.decision_real_geometry_from_jpl_horizons')}</div>
+        <h1 className="title">{t('ops.mars_is_about_to_pass_behind')}</h1>
         <p className="muted">
-          From {formatJd(sim.steps[event.windowStart].jd)}, for about <b>{days} days</b>, the Sun sits almost directly between Earth and Mars. Its hot outer
-          atmosphere scrambles radio signals: this is <Term k="solar conjunction" />.
+          <T k="ops.conj_text" params={{ date: formatJd(sim.steps[event.windowStart].jd), n: days }} tags={{ sc: (c) => <Term k="solar conjunction">{c}</Term> }} />
         </p>
         <div className="facts facts--compact">
-          <div><dt>Recorder free space</dt><dd>{formatData(free)}</dd></div>
-          <div><dt>Full-rate data in the blackout</dt><dd>{formatData(days * perDay)}</dd></div>
-          <div><dt>Recorder capacity</dt><dd>{formatData(sim.capacityMb)}</dd></div>
-          <div><dt>Sun–Earth–Mars angle now</dt><dd>{step.sepDeg.toFixed(1)}°</dd></div>
+          <div><dt>{t('ops.recorder_free_space')}</dt><dd>{formatData(free)}</dd></div>
+          <div><dt>{t('ops.full_rate_data_in_the_blackout')}</dt><dd>{formatData(days * perDay)}</dd></div>
+          <div><dt>{t('ops.recorder_capacity')}</dt><dd>{formatData(sim.capacityMb)}</dd></div>
+          <div><dt>{t('ops.sun_earth_mars_angle_now')}</dt><dd>{step.sepDeg.toFixed(1)}°</dd></div>
         </div>
       </>
     );
@@ -308,34 +306,32 @@ function EventBrief({ event, sim, step }: { event: OpsEvent; sim: SimResult; ste
     const f = sim.steps[far];
     return (
       <>
-        <div className="eyebrow eyebrow--amber">Decision · real Sun distance from JPL Horizons</div>
-        <h1 className="title">Mars is moving away from the Sun</h1>
+        <div className="eyebrow eyebrow--amber">{t('ops.decision_real_sun_distance_from_jpl')}</div>
+        <h1 className="title">{t('ops.mars_is_moving_away_from_the')}</h1>
         <p className="muted">
-          Around {formatJd(f.jd)} Mars reaches <b>{f.sunMarsAu.toFixed(3)} AU</b> — the farthest point of this mission. Sunlight, and your solar power, fall
-          with the square of that distance.
+          <T k="ops.power_text" params={{ date: formatJd(f.jd), au: f.sunMarsAu.toFixed(3) }} />
         </p>
         <div className="facts facts--compact">
-          <div><dt>Margin now</dt><dd>{pct(step.marginPct)}</dd></div>
-          <div><dt>Forecast at the farthest point</dt><dd className={sim.worstFullMarginPct < POWER_MARGIN_RULE ? 'amber' : ''}>{pct(sim.worstFullMarginPct)}</dd></div>
-          <div><dt>Flight rule</dt><dd>at least +5 %</dd></div>
-          <div><dt>Season length</dt><dd>{days} days</dd></div>
+          <div><dt>{t('ops.margin_now')}</dt><dd>{pct(step.marginPct)}</dd></div>
+          <div><dt>{t('ops.forecast_at_the_farthest_point')}</dt><dd className={sim.worstFullMarginPct < POWER_MARGIN_RULE ? 'amber' : ''}>{pct(sim.worstFullMarginPct)}</dd></div>
+          <div><dt>{t('ops.flight_rule')}</dt><dd>{t('ops.at_least_5')}</dd></div>
+          <div><dt>{t('ops.season_length')}</dt><dd>{t('u.days', { n: days })}</dd></div>
         </div>
       </>
     );
   }
   return (
     <>
-      <div className="eyebrow eyebrow--amber">Decision · fictional gameplay event</div>
-      <h1 className="title">A regional dust storm is growing</h1>
+      <div className="eyebrow eyebrow--amber">{t('ops.decision_fictional_gameplay_event')}</div>
+      <h1 className="title">{t('ops.a_regional_dust_storm_is_growing')}</h1>
       <p className="muted">
-        Dust is lifting across the southern hemisphere — exactly what KAZMARS-1 came to study. For the next {STORM_DAYS} days you could observe far more often
-        than planned.
+        {t('ops.dust_is_lifting_across_the_southern', { STORM_DAYS })}
       </p>
       <div className="facts facts--compact">
-        <div><dt>Recorder free space</dt><dd>{formatData(free)}</dd></div>
-        <div><dt>Link can carry</dt><dd>{Math.round(step.downlinkCapacityMb / sim.stepDays)} Mb/day</dd></div>
-        <div><dt>Normal data rate</dt><dd>{Math.round(perDay)} Mb/day</dd></div>
-        <div><dt>Campaign data rate</dt><dd>{Math.round(perDay * 1.8)} Mb/day</dd></div>
+        <div><dt>{t('ops.recorder_free_space')}</dt><dd>{formatData(free)}</dd></div>
+        <div><dt>{t('ops.link_can_carry')}</dt><dd>{t('u.mbday', { n: Math.round(step.downlinkCapacityMb / sim.stepDays) })}</dd></div>
+        <div><dt>{t('ops.normal_data_rate')}</dt><dd>{t('u.mbday', { n: Math.round(perDay) })}</dd></div>
+        <div><dt>{t('ops.campaign_data_rate')}</dt><dd>{t('u.mbday', { n: Math.round(perDay * 1.8) })}</dd></div>
       </div>
     </>
   );

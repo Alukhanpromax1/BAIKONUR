@@ -1,4 +1,5 @@
 import type { Provenance, VehicleId } from '@/types';
+import { t } from '@/i18n';
 
 export interface LaunchVehicle {
   id: VehicleId;
@@ -19,32 +20,32 @@ export interface LaunchVehicle {
 export const LAUNCH_VEHICLES: LaunchVehicle[] = [
   {
     id: 'tulpar-l',
-    name: 'Tulpar-L',
-    klass: 'Light class',
+    get name() { return t('vehicle.launch_vehicles.tulpar-l.name'); },
+    get klass() { return t('vehicle.launch_vehicles.tulpar-l.klass'); },
     capacityKg: 480,
     costCr: 105,
     heightM: 38,
-    description: 'The most affordable ride. Only a light spacecraft bound for an easy orbit will fit.',
+    get description() { return t('vehicle.launch_vehicles.tulpar-l.description'); },
     provenance: 'educational_game_assumption',
   },
   {
     id: 'tulpar-m',
-    name: 'Tulpar-M',
-    klass: 'Medium class',
+    get name() { return t('vehicle.launch_vehicles.tulpar-m.name'); },
+    get klass() { return t('vehicle.launch_vehicles.tulpar-m.klass'); },
     capacityKg: 620,
     costCr: 150,
     heightM: 46,
-    description: 'A balanced choice with room for a well-equipped orbiter.',
+    get description() { return t('vehicle.launch_vehicles.tulpar-m.description'); },
     provenance: 'educational_game_assumption',
   },
   {
     id: 'tulpar-h',
-    name: 'Tulpar-H',
-    klass: 'Heavy class',
+    get name() { return t('vehicle.launch_vehicles.tulpar-h.name'); },
+    get klass() { return t('vehicle.launch_vehicles.tulpar-h.klass'); },
     capacityKg: 900,
     costCr: 195,
     heightM: 55,
-    description: 'Lifts almost anything you can design — and takes a large share of the budget.',
+    get description() { return t('vehicle.launch_vehicles.tulpar-h.description'); },
     provenance: 'educational_game_assumption',
   },
 ];

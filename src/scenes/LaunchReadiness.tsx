@@ -1,4 +1,6 @@
 import gsap from 'gsap';
+import { t, useLangStore } from '@/i18n';
+import { T } from '@/i18n/Trans';
 import { AlertTriangle, ArrowRight, Check, Eye } from 'lucide-react';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -25,11 +27,10 @@ const TOOLTIP = {
   itemStyle: { padding: 0 },
 };
 const P = CHANNELS.pressure;
-const T = CHANNELS.temperature;
+const TEMP = CHANNELS.temperature;
 
 const clock = (s: number) => `T−${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
-export const SIM_LABEL = 'SIMULATED TELEMETRY — EDUCATIONAL SCENARIO';
 
 /** Scene 5 — countdown, anomaly, evidence investigation and the Go/No-Go call. */
 export default function LaunchReadiness() {
@@ -41,8 +42,9 @@ export default function LaunchReadiness() {
   const setChoice = useGame((s) => s.setReadinessChoice);
   const guided = useGame((s) => s.settings.mode === 'guided');
   const reduced = useGame((s) => s.settings.reducedMotion);
+  const lang = useLangStore((s) => s.lang);
   const [phase, setPhase] = useState<Phase>('countdown');
-  const [t, setT] = useState(246);
+  const [clockS, setClockS] = useState(246);
   const telemetry = useMemo(() => generateTelemetry(seed, scenario), [seed, scenario]);
   const ref = useReveal<HTMLDivElement>(phase, 0.05);
 
@@ -50,7 +52,7 @@ export default function LaunchReadiness() {
   useEffect(() => {
     if (phase !== 'countdown') return;
     const id = setInterval(() => {
-      setT((v) => {
+      setClockS((v) => {
         if (v <= 241) {
           clearInterval(id);
           sfx.warning();
@@ -66,7 +68,7 @@ export default function LaunchReadiness() {
 
   const outcome = useMemo(
     () => (readiness.choice ? resolveReadiness({ scenario, choice: readiness.choice, panelsViewed: readiness.panelsViewed, finalCall: readiness.finalCall }) : null),
-    [scenario, readiness],
+    [scenario, readiness, lang],
   );
 
   const decide = (choice: PrimaryChoice) => {
@@ -88,10 +90,10 @@ export default function LaunchReadiness() {
   // The alarm shows the worst reading of each flagged channel — not the cause.
   const worst = useMemo(() => {
     let p1 = P.nominal as number;
-    let t1 = T.nominal as number;
+    let t1 = TEMP.nominal as number;
     for (const s of telemetry.samples) {
       if (s.p1 !== null && Math.abs(s.p1 - P.nominal) > Math.abs(p1 - P.nominal)) p1 = s.p1;
-      if (s.t1 !== null && Math.abs(s.t1 - T.nominal) > Math.abs(t1 - T.nominal)) t1 = s.t1;
+      if (s.t1 !== null && Math.abs(s.t1 - TEMP.nominal) > Math.abs(t1 - TEMP.nominal)) t1 = s.t1;
     }
     return { p1, t1 };
   }, [telemetry]);
@@ -101,19 +103,19 @@ export default function LaunchReadiness() {
       <div className="readiness__bar" data-reveal>
         <div className="row row--wrap" style={{ gap: 14 }}>
           <span className={`countdown mono ${phase === 'countdown' ? '' : 'countdown--hold'}`} data-testid="countdown">
-            {clock(t)}
+            {clock(clockS)}
           </span>
           <span className={`tag ${phase === 'countdown' ? 'tag--cyan' : 'tag--amber'}`}>
             <span className="tag__dot tag__dot--pulse" />
-            {phase === 'countdown' ? 'Count running' : phase === 'liftoff' ? 'Count released' : 'Built-in hold'}
+            {phase === 'countdown' ? t('ready.count_running') : phase === 'liftoff' ? t('ready.count_released') : t('ready.built_in_hold')}
           </span>
         </div>
         <span className="tag tag--amber" data-testid="sim-label">
-          {SIM_LABEL}
+          {t('ready.sim_label')}
         </span>
       </div>
 
-      {phase === 'countdown' && <CountdownView t={t} />}
+      {phase === 'countdown' && <CountdownView seconds={clockS} />}
 
       {phase === 'alarm' && (
         <div className="readiness__col">
@@ -122,35 +124,35 @@ export default function LaunchReadiness() {
               <div className="row">
                 <AlertTriangle size={22} className="amber" />
                 <div>
-                  <div className="eyebrow eyebrow--amber">Telemetry alert · propellant tank</div>
-                  <h1 className="title">Pressure and temperature anomaly</h1>
+                  <div className="eyebrow eyebrow--amber">{t('ready.telemetry_alert_propellant_tank')}</div>
+                  <h1 className="title">{t('ready.pressure_and_temperature_anomaly')}</h1>
                 </div>
               </div>
               <div className="readouts">
-                <Readout label="P1 tank pressure" value={`${worst.p1.toFixed(2)} bar`} limits={`${P.low}–${P.high} bar`} flag="OUT OF LIMITS" />
-                <Readout label="T1 tank temperature" value={`${worst.t1.toFixed(1)} °C`} limits={`${T.low}–${T.high} °C`} flag="DEVIATION FLAGGED" />
-                <Readout label="P2 · second sensor" value="Not reviewed" limits={`${P.low}–${P.high} bar`} note="See the evidence panels" />
+                <Readout label={t('ready.p1_tank_pressure')} value={`${worst.p1.toFixed(2)} bar`} limits={t('ready.bar', { low: P.low, high: P.high })} flag={t('ready.out_of_limits')} />
+                <Readout label={t('ready.t1_tank_temperature')} value={`${worst.t1.toFixed(1)} °C`} limits={`${TEMP.low}–${TEMP.high} °C`} flag={t('ready.deviation_flagged')} />
+                <Readout label={t('ready.p2_second_sensor')} value={t('ready.not_reviewed')} limits={t('ready.bar', { low: P.low, high: P.high })} note={t('ready.see_the_evidence_panels')} />
               </div>
-              <p className="xs muted">Values are the most extreme readings of each flagged channel in the last {telemetry.samples.length} seconds.</p>
-              <p className="small muted">The automatic sequencer has paused at the planned hold. You have time to decide — use it.</p>
+              <p className="xs muted">{t('ready.values_are_the_most_extreme_readings', { samples: telemetry.samples.length })}</p>
+              <p className="small muted">{t('ready.the_automatic_sequencer_has_paused_at')}</p>
             </div>
           </div>
           <div className="panel" data-reveal>
             <div className="panel__body stack">
               <Speech who="arman">
-                That’s the pressurant tank. If it’s leaking, we do not want to find out after launch. <b>Hold the countdown. Verify the hardware condition before proceeding.</b>
+                <T k="ready.arman_alarm" />
               </Speech>
               <Speech who="dana">
-                Or the tank is fine and the number is wrong. We’ve had glitchy packets all morning. <b>Cross-check the raw signals and independent sensors before concluding that the hardware has failed.</b>
+                <T k="ready.dana_alarm" />
               </Speech>
               <Speech who="director" compact>
-                Mission Director, it’s your recommendation. I keep the final word on launch safety — but I want to hear what the evidence says.
+                {t('ready.mission_director_its_your_recommendation_i')}
               </Speech>
             </div>
           </div>
           <div data-reveal>
             <button type="button" className="btn btn--lg" onClick={() => { sfx.confirm(); setPhase('investigate'); }} data-testid="open-evidence">
-              Open the evidence <ArrowRight size={16} />
+              {t('ready.open_the_evidence')}{' '} <ArrowRight size={16} />
             </button>
           </div>
         </div>
@@ -165,11 +167,11 @@ export default function LaunchReadiness() {
             <div className="panel">
               <div className="panel__body stack">
                 <div>
-                  <div className="eyebrow">Your recommendation</div>
-                  <h2 className="subtitle" style={{ marginTop: 4 }}>Go or no-go?</h2>
+                  <div className="eyebrow">{t('ready.your_recommendation')}</div>
+                  <h2 className="subtitle" style={{ marginTop: 4 }}>{t('ready.go_or_no_go')}</h2>
                 </div>
                 <div className="row row--wrap" style={{ gap: 6 }}>
-                  <span className="xs muted">Evidence reviewed</span>
+                  <span className="xs muted">{t('ready.evidence_reviewed')}</span>
                   {(['compare', 'raw', 'trend'] as EvidencePanel[]).map((p) => (
                     <span key={p} className={`tag ${readiness.panelsViewed.includes(p) ? 'tag--cyan' : ''}`}>
                       {readiness.panelsViewed.includes(p) ? <Check size={11} /> : <Eye size={11} />}
@@ -177,10 +179,10 @@ export default function LaunchReadiness() {
                     </span>
                   ))}
                 </div>
-                <TeamDecision testId="readiness" choices={PRIMARY_CHOICES} confirmLabel="Confirm recommendation" onConfirm={(id) => decide(id as PrimaryChoice)} />
+                <TeamDecision testId="readiness" choices={PRIMARY_CHOICES} confirmLabel={t('ready.confirm_recommendation')} onConfirm={(id) => decide(id as PrimaryChoice)} />
                 {guided && (
                   <Coach who="director">
-                    Neither of them is automatically right. Open each evidence tab before you choose — a decision is judged by what you knew, not by how it turned out.
+                    {t('ready.neither_of_them_is_automatically_right')}
                   </Coach>
                 )}
               </div>
@@ -199,11 +201,11 @@ export default function LaunchReadiness() {
           <div className="panel" data-reveal>
             <div className="panel__body stack">
               <div>
-                <div className="eyebrow">Cross-validation complete</div>
-                <h2 className="subtitle" style={{ marginTop: 4 }}>What does the evidence support?</h2>
+                <div className="eyebrow">{t('ready.cross_validation_complete')}</div>
+                <h2 className="subtitle" style={{ marginTop: 4 }}>{t('ready.what_does_the_evidence_support')}</h2>
               </div>
-              <p className="small muted">You compared the independent sensors, the raw counts and the trend. Now tell the Flight Director what to do.</p>
-              <TeamDecision testId="final" choices={FINAL_CHOICES} confirmLabel="Send to Flight Director" onConfirm={(id) => finalCall(id as FinalCall)} />
+              <p className="small muted">{t('ready.you_compared_the_independent_sensors_the')}</p>
+              <TeamDecision testId="final" choices={FINAL_CHOICES} confirmLabel={t('ready.send_to_flight_director')} onConfirm={(id) => finalCall(id as FinalCall)} />
             </div>
           </div>
         </div>
@@ -216,20 +218,20 @@ export default function LaunchReadiness() {
               <div className="row row--between row--wrap">
                 <div className={`eyebrow ${outcome.verdict === 'correct' ? '' : 'eyebrow--amber'}`}>{VERDICT_LABEL[outcome.verdict]}</div>
                 <span className="mono">
-                  Decision quality {outcome.points}/{outcome.maxPoints}
+                  {t('ready.decision_quality', { points: outcome.points, maxPoints: outcome.maxPoints })}
                 </span>
               </div>
               <h1 className="title">{outcome.headline}</h1>
               <p className="lead">{outcome.narrative}</p>
               <hr className="rule" />
-              <div className="eyebrow eyebrow--muted">What was really happening</div>
+              <div className="eyebrow eyebrow--muted">{t('ready.what_was_really_happening')}</div>
               <h2 className="subtitle">{outcome.truthTitle}</h2>
               <p className="muted">{outcome.truthExplain}</p>
               <div className="facts facts--compact">
-                <div><dt>Launch delay</dt><dd>{outcome.slipDays ? `${outcome.slipDays} days` : 'None'}</dd></div>
-                <div><dt>Extra cost</dt><dd>{outcome.costCr ? `${outcome.costCr} credits` : 'None'}</dd></div>
-                <div><dt>Evidence used</dt><dd>{outcome.evidenceQuality} of 3 panels</dd></div>
-                <div><dt>Effect at Mars</dt><dd>{outcome.degradedLinkDays ? `Weak link for ${outcome.degradedLinkDays} days` : 'None'}</dd></div>
+                <div><dt>{t('ready.launch_delay')}</dt><dd>{outcome.slipDays ? `${outcome.slipDays} days` : t('ready.none')}</dd></div>
+                <div><dt>{t('ready.extra_cost')}</dt><dd>{outcome.costCr ? `${outcome.costCr} credits` : t('ready.none')}</dd></div>
+                <div><dt>{t('ready.evidence_used')}</dt><dd>{t('ready.of_3_panels', { evidenceQuality: outcome.evidenceQuality })}</dd></div>
+                <div><dt>{t('ready.effect_at_mars')}</dt><dd>{outcome.degradedLinkDays ? t('ready.weak_link_for_days', { degradedLinkDays: outcome.degradedLinkDays }) : t('ready.none')}</dd></div>
               </div>
             </div>
           </div>
@@ -244,7 +246,7 @@ export default function LaunchReadiness() {
           </div>
           <div data-reveal>
             <button type="button" className="btn btn--lg" onClick={() => { sfx.launch(); setPhase('liftoff'); }} data-testid="to-liftoff">
-              {outcome.slipDays ? 'Launch on the new date' : 'Resume the count'} <ArrowRight size={16} />
+              {outcome.slipDays ? t('ready.launch_on_the_new_date') : t('ready.resume_the_count')} <ArrowRight size={16} />
             </button>
           </div>
         </div>
@@ -255,41 +257,41 @@ export default function LaunchReadiness() {
   );
 }
 
-const PANEL_LABEL: Record<EvidencePanel, string> = { compare: 'Sensor comparison', raw: 'Raw telemetry', trend: 'Trend analysis' };
+const PANEL_LABEL: Record<EvidencePanel, string> = { get compare() { return t('ready.panel_label.compare'); }, get raw() { return t('ready.panel_label.raw'); }, get trend() { return t('ready.panel_label.trend'); } };
 
 const PRIMARY_CHOICES: Choice[] = [
-  { id: 'hold', kicker: 'Arman recommends', title: 'Hold and investigate', text: 'Stop the countdown and send technicians to inspect the tank. Right if the fault is real — costs days and credits if it is not.' },
-  { id: 'cross', kicker: 'Dana recommends', title: 'Cross-validate the evidence', text: 'Use the built-in hold to compare raw signals and independent sensors, then recommend an action to the Flight Director.' },
-  { id: 'proceed', kicker: 'No further checks', title: 'Proceed with the countdown', text: 'Treat the alarm as harmless and resume. Fastest — and a real risk if the evidence does not support it.' },
+  { id: 'hold', get kicker() { return t('ready.primary_choices.hold.kicker'); }, get title() { return t('ready.primary_choices.hold.title'); }, get text() { return t('ready.primary_choices.hold.text'); } },
+  { id: 'cross', get kicker() { return t('ready.primary_choices.cross.kicker'); }, get title() { return t('ready.primary_choices.cross.title'); }, get text() { return t('ready.primary_choices.cross.text'); } },
+  { id: 'proceed', get kicker() { return t('ready.primary_choices.proceed.kicker'); }, get title() { return t('ready.primary_choices.proceed.title'); }, get text() { return t('ready.primary_choices.proceed.text'); } },
 ];
 
 const FINAL_CHOICES: Choice[] = [
-  { id: 'scrub', title: 'Scrub and inspect the hardware', text: 'The evidence shows a physical problem in the tank.' },
-  { id: 'resync', title: 'Switch to the backup telemetry path, then resume', text: 'The evidence shows the data chain is corrupting good measurements.' },
-  { id: 'resume', title: 'Resume and keep the sensor on watch', text: 'The evidence shows an isolated noise spike with no trend.' },
+  { id: 'scrub', get title() { return t('ready.final_choices.scrub.title'); }, get text() { return t('ready.final_choices.scrub.text'); } },
+  { id: 'resync', get title() { return t('ready.final_choices.resync.title'); }, get text() { return t('ready.final_choices.resync.text'); } },
+  { id: 'resume', get title() { return t('ready.final_choices.resume.title'); }, get text() { return t('ready.final_choices.resume.text'); } },
 ];
 
 const VERDICT_LABEL = {
-  correct: 'Evidence-based decision',
-  'right-thin-evidence': 'Right call · thin evidence',
-  'false-positive': 'False positive',
-  'false-negative': 'False negative',
-  misdiagnosed: 'Misdiagnosed',
-  lucky: 'Lucky outcome',
+  get correct() { return t('ready.verdict_label.correct'); },
+  get 'right-thin-evidence'() { return t('ready.verdict_label.right_thin_evidence'); },
+  get 'false-positive'() { return t('ready.verdict_label.false_positive'); },
+  get 'false-negative'() { return t('ready.verdict_label.false_negative'); },
+  get misdiagnosed() { return t('ready.verdict_label.misdiagnosed'); },
+  get lucky() { return t('ready.verdict_label.lucky'); },
 } as const;
 
 const REACTIONS = {
   hardware: [
-    { who: 'arman' as const, text: 'Two sensors, same story, and the temperature followed. That is why I wanted eyes on the hardware.' },
-    { who: 'dana' as const, text: 'And the data is what proved it. I would rather check and agree with you than guess and be right.' },
+    { who: 'arman' as const, get text() { return t('ready.reactions.hardware.text'); } },
+    { who: 'dana' as const, get text() { return t('ready.reactions.hardware.text_2'); } },
   ],
   'data-chain': [
-    { who: 'dana' as const, text: 'The raw counts never moved. It was our own ground software misreading good packets.' },
-    { who: 'arman' as const, text: 'Fine — this time the hardware was innocent. I still want that processor fixed before the next count.' },
+    { who: 'dana' as const, get text() { return t('ready.reactions.data_chain.text'); } },
+    { who: 'arman' as const, get text() { return t('ready.reactions.data_chain.text_2'); } },
   ],
   noise: [
-    { who: 'dana' as const, text: 'One point is not a trend. The second sensor never even blinked.' },
-    { who: 'arman' as const, text: 'Agreed. But I would rather look and find nothing than assume and be wrong.' },
+    { who: 'dana' as const, get text() { return t('ready.reactions.noise.text'); } },
+    { who: 'arman' as const, get text() { return t('ready.reactions.noise.text_2'); } },
   ],
 };
 
@@ -298,29 +300,29 @@ function Readout({ label, value, limits, flag, note }: { label: string; value: s
     <div className={`readout ${flag ? 'readout--flag' : ''}`}>
       <span className="eyebrow eyebrow--muted">{label}</span>
       <span className="readout__value mono">{value}</span>
-      <span className="xs mono muted">limits {limits}</span>
+      <span className="xs mono muted">{t('ready.limits', { limits })}</span>
       {flag && <span className="xs mono amber">{flag}</span>}
       {note && <span className="xs mono muted">{note}</span>}
     </div>
   );
 }
 
-const POLLS = ['Range safety', 'Ground power', 'Spacecraft power', 'Communications', 'Guidance', 'Propulsion'];
+const POLLS = ['ready.poll.range', 'ready.poll.ground', 'ready.poll.spacecraft', 'ready.poll.comms', 'ready.poll.guidance', 'ready.poll.propulsion'] as const;
 
-function CountdownView({ t }: { t: number }) {
-  const done = Math.min(POLLS.length, 246 - t);
+function CountdownView({ seconds }: { seconds: number }) {
+  const done = Math.min(POLLS.length, 246 - seconds);
   return (
     <div className="readiness__col">
       <div data-reveal>
-        <div className="eyebrow">Launch readiness · Baikonur training centre</div>
-        <h1 className="display" style={{ marginTop: 8 }}>Final readiness poll</h1>
-        <p className="lead" style={{ marginTop: 10 }}>KAZMARS-1 is fuelled and on internal power. The team is polling each console before the planned hold at T−04:00.</p>
+        <div className="eyebrow">{t('ready.launch_readiness_baikonur_training_centre')}</div>
+        <h1 className="display" style={{ marginTop: 8 }}>{t('ready.final_readiness_poll')}</h1>
+        <p className="lead" style={{ marginTop: 10 }}>{t('ready.kazmars_1_is_fuelled_and_on')}</p>
       </div>
       <div className="polls" data-reveal>
         {POLLS.map((p, i) => (
           <div key={p} className={`poll ${i < done ? 'poll--go' : ''}`}>
             <span>{p}</span>
-            <span className="mono">{i < done ? 'GO' : '· · ·'}</span>
+            <span className="mono">{i < done ? t('ready.go') : '· · ·'}</span>
           </div>
         ))}
       </div>
@@ -332,7 +334,7 @@ function Glossary() {
   return (
     <div className="panel panel--plain">
       <div className="panel__body">
-        <div className="eyebrow eyebrow--muted">Words worth knowing — hover or tap</div>
+        <div className="eyebrow eyebrow--muted">{t('ready.words_worth_knowing_hover_or_tap')}</div>
         <div className="glossary">
           <Term k="false positive" />
           <Term k="false negative" />
@@ -342,7 +344,7 @@ function Glossary() {
           <Term k="moving average" />
         </div>
         <p className="xs muted" style={{ marginTop: 10 }}>
-          Abnormal readings are never deleted from these charts. An outlier may be noise — or the first sign of something real.
+          {t('ready.abnormal_readings_are_never_deleted_from')}
         </p>
       </div>
     </div>
@@ -372,8 +374,8 @@ function EvidenceBoard({ telemetry, viewed, onView, compact = false }: { telemet
   return (
     <div className="panel evidence">
       <div className="panel__head">
-        <span className="eyebrow">Evidence · last {telemetry.samples.length} seconds</span>
-        <span className="xs mono muted">seed {telemetry.seed}</span>
+        <span className="eyebrow">{t('ready.evidence_last_seconds', { samples: telemetry.samples.length })}</span>
+        <span className="xs mono muted">{t('ready.seed', { seed: telemetry.seed })}</span>
       </div>
       <div className="tabs tabs--flush" role="tablist">
         {(['compare', 'raw', 'trend'] as EvidencePanel[]).map((p, i) => (
@@ -386,28 +388,28 @@ function EvidenceBoard({ telemetry, viewed, onView, compact = false }: { telemet
       <div className="panel__body">
         {tab === null && (
           <div className="evidence__empty">
-            <p className="lead">Three ways to look at the same alarm.</p>
-            <p className="muted">Open a tab to inspect it. Nothing here tells you the answer — each view shows a different part of the picture.</p>
+            <p className="lead">{t('ready.three_ways_to_look_at_the')}</p>
+            <p className="muted">{t('ready.open_a_tab_to_inspect_it')}</p>
           </div>
         )}
 
         {tab === 'compare' && (
           <div className="stack">
             <p className="small">
-              <b>What to look for:</b> <span className="muted">P1 and P2 are two separate sensors on the same tank. If the tank is really losing pressure, both should show it. If only one moves, suspect that sensor or its data.</span>
+              <b>{t('ready.what_to_look_for')}</b> <span className="muted">{t('ready.p1_and_p2_are_two_separate')}</span>
             </p>
             <div className="chart" data-testid="chart-compare">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
                   <CartesianGrid stroke={GRID} vertical={false} />
-                  <XAxis dataKey="time" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} unit=" s" interval={19} />
-                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[15.6, 19.2]} ticks={[16, 16.8, 17.5, 18.2, 19]} unit=" bar" width={62} />
+                  <XAxis dataKey="time" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} unit={t('fmt.axis_s')} interval={19} />
+                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[15.6, 19.2]} ticks={[16, 16.8, 17.5, 18.2, 19]} unit={t('fmt.axis_bar')} width={62} />
                   <Tooltip {...TOOLTIP} labelFormatter={(v) => `t = ${v} s`} />
                   <Legend wrapperStyle={{ fontFamily: 'IBM Plex Mono', fontSize: 11 }} />
-                  <ReferenceLine y={P.low} stroke="#FFB84D" strokeDasharray="4 4" label={{ value: 'lower limit', position: 'insideBottomLeft', ...AXIS, fill: '#FFB84D' }} />
-                  <ReferenceLine y={P.high} stroke="#FFB84D" strokeDasharray="4 4" label={{ value: 'upper limit', position: 'insideTopLeft', ...AXIS, fill: '#FFB84D' }} />
-                  <Line name="P1 pressure (bar)" type="linear" dataKey="p1" stroke="#52D7E8" strokeWidth={1.6} dot={false} isAnimationActive={anim} animationDuration={1100} connectNulls={false} />
-                  <Line name="P2 pressure (bar)" type="linear" dataKey="p2" stroke="#E8ECF1" strokeWidth={1.3} dot={false} isAnimationActive={anim} animationDuration={1100} connectNulls={false} />
+                  <ReferenceLine y={P.low} stroke="#FFB84D" strokeDasharray="4 4" label={{ value: t('ready.lower_limit'), position: 'insideBottomLeft', ...AXIS, fill: '#FFB84D' }} />
+                  <ReferenceLine y={P.high} stroke="#FFB84D" strokeDasharray="4 4" label={{ value: t('ready.upper_limit'), position: 'insideTopLeft', ...AXIS, fill: '#FFB84D' }} />
+                  <Line name={t('ready.p1_pressure_bar')} type="linear" dataKey="p1" stroke="#52D7E8" strokeWidth={1.6} dot={false} isAnimationActive={anim} animationDuration={1100} connectNulls={false} />
+                  <Line name={t('ready.p2_pressure_bar')} type="linear" dataKey="p2" stroke="#E8ECF1" strokeWidth={1.3} dot={false} isAnimationActive={anim} animationDuration={1100} connectNulls={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -415,21 +417,21 @@ function EvidenceBoard({ telemetry, viewed, onView, compact = false }: { telemet
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
                   <CartesianGrid stroke={GRID} vertical={false} />
-                  <XAxis dataKey="time" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} unit=" s" interval={19} />
-                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[12, 29]} ticks={[14, 19.5, 25]} unit=" °C" width={62} />
+                  <XAxis dataKey="time" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} unit={t('fmt.axis_s')} interval={19} />
+                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[12, 29]} ticks={[14, 19.5, 25]} unit={t('fmt.axis_degc')} width={62} />
                   <Tooltip {...TOOLTIP} labelFormatter={(v) => `t = ${v} s`} />
                   <Legend wrapperStyle={{ fontFamily: 'IBM Plex Mono', fontSize: 11 }} />
-                  <ReferenceLine y={T.high} stroke="#FFB84D" strokeDasharray="4 4" />
-                  <ReferenceLine y={T.low} stroke="#FFB84D" strokeDasharray="4 4" />
-                  <Line name="T1 temperature (°C)" type="linear" dataKey="t1" stroke="#FFB84D" strokeWidth={1.4} dot={false} isAnimationActive={anim} animationDuration={1100} connectNulls={false} />
+                  <ReferenceLine y={TEMP.high} stroke="#FFB84D" strokeDasharray="4 4" />
+                  <ReferenceLine y={TEMP.low} stroke="#FFB84D" strokeDasharray="4 4" />
+                  <Line name={t('ready.t1_temperature_c')} type="linear" dataKey="t1" stroke="#FFB84D" strokeWidth={1.4} dot={false} isAnimationActive={anim} animationDuration={1100} connectNulls={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             <div className="stats">
-              <Stat label="P1 samples outside limits" value={`${evidence.outOfLimits.p1}`} />
-              <Stat label="P2 samples outside limits" value={`${evidence.outOfLimits.p2}`} />
-              <Stat label="P1–P2 gap, last 30 s" value={`${evidence.lateDisagreementBar.toFixed(2)} bar`} />
-              <Stat label={<><Term k="correlation">Correlation</Term> P1–P2</>} value={evidence.correlationP1P2.toFixed(2)} hint="1 = move together · 0 = unrelated" />
+              <Stat label={t('ready.p1_samples_outside_limits')} value={`${evidence.outOfLimits.p1}`} />
+              <Stat label={t('ready.p2_samples_outside_limits')} value={`${evidence.outOfLimits.p2}`} />
+              <Stat label={t('ready.p1_p2_gap_last_30_s')} value={`${evidence.lateDisagreementBar.toFixed(2)} bar`} />
+              <Stat label={<><Term k="correlation">{t('ready.correlation')}</Term> P1–P2</>} value={evidence.correlationP1P2.toFixed(2)} hint={t('ready.1_move_together_0_unrelated')} />
             </div>
           </div>
         )}
@@ -437,40 +439,40 @@ function EvidenceBoard({ telemetry, viewed, onView, compact = false }: { telemet
         {tab === 'raw' && (
           <div className="stack">
             <p className="small">
-              <b>What to look for:</b> <span className="muted">Raw counts come straight from the sensor. Console values pass through ground software first. If the two disagree, or packets are missing, repeated or out of order, the problem lies in between — in the <Term k="data quality" />.</span>
+              <b>{t('ready.what_to_look_for')}</b> <span className="muted"><T k="ready.look_raw" tags={{ dq: (c) => <Term k="data quality">{c}</Term> }} /></span>
             </p>
             <div className="chart" data-testid="chart-raw">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
                   <CartesianGrid stroke={GRID} vertical={false} />
-                  <XAxis dataKey="time" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} unit=" s" interval={19} />
-                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[15.6, 19.2]} ticks={[16, 16.8, 17.5, 18.2, 19]} unit=" bar" width={62} />
+                  <XAxis dataKey="time" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} unit={t('fmt.axis_s')} interval={19} />
+                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[15.6, 19.2]} ticks={[16, 16.8, 17.5, 18.2, 19]} unit={t('fmt.axis_bar')} width={62} />
                   <Tooltip {...TOOLTIP} labelFormatter={(v) => `t = ${v} s`} />
                   <Legend wrapperStyle={{ fontFamily: 'IBM Plex Mono', fontSize: 11 }} />
                   <ReferenceLine y={P.low} stroke="#FFB84D" strokeDasharray="4 4" />
                   <ReferenceLine y={P.high} stroke="#FFB84D" strokeDasharray="4 4" />
-                  <Line name="P1 as shown on console (bar)" type="linear" dataKey="p1" stroke="#52D7E8" strokeWidth={1.6} dot={false} isAnimationActive={anim} animationDuration={1100} connectNulls={false} />
-                  <Line name="P1 from raw counts × 0.005 (bar)" type="linear" dataKey="p1Raw" stroke="#FFB84D" strokeWidth={1.2} strokeDasharray="3 3" dot={false} isAnimationActive={anim} animationDuration={1100} connectNulls={false} />
+                  <Line name={t('ready.p1_as_shown_on_console_bar')} type="linear" dataKey="p1" stroke="#52D7E8" strokeWidth={1.6} dot={false} isAnimationActive={anim} animationDuration={1100} connectNulls={false} />
+                  <Line name={t('ready.p1_from_raw_counts_0_005')} type="linear" dataKey="p1Raw" stroke="#FFB84D" strokeWidth={1.2} strokeDasharray="3 3" dot={false} isAnimationActive={anim} animationDuration={1100} connectNulls={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             <div className="stats">
-              <Stat label="Raw ≠ console value" value={`${evidence.packets.rawMismatch} packets`} />
-              <Stat label="Missing packets" value={`${evidence.packets.missing}`} />
-              <Stat label="Repeated packets" value={`${evidence.packets.duplicates}`} />
-              <Stat label="Out-of-order timestamps" value={`${evidence.packets.outOfOrder}`} />
+              <Stat label={t('ready.raw_console_value')} value={`${evidence.packets.rawMismatch} packets`} />
+              <Stat label={t('ready.missing_packets')} value={`${evidence.packets.missing}`} />
+              <Stat label={t('ready.repeated_packets')} value={`${evidence.packets.duplicates}`} />
+              <Stat label={t('ready.out_of_order_timestamps')} value={`${evidence.packets.outOfOrder}`} />
             </div>
             <div className="packet-log scroll">
               <table className="table" data-testid="packet-log">
                 <thead>
                   <tr>
-                    <th>Seq</th><th>Time s</th><th>P1 counts</th><th>Raw bar</th><th>Console bar</th><th>P2 bar</th><th>T1 °C</th><th>Note</th>
+                    <th>{t('ready.seq')}</th><th>{t('ready.time_s')}</th><th>{t('ready.p1_counts')}</th><th>{t('ready.raw_bar')}</th><th>{t('ready.console_bar')}</th><th>{t('ready.p2_bar')}</th><th>T1 °C</th><th>{t('ready.note')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((p) => {
                     const raw = p.p1Counts * P.countsToBar;
-                    const notes = [p.flags.gapBefore ? `${p.flags.gapBefore} missing before` : '', p.flags.duplicate ? 'repeat' : '', p.flags.outOfOrder ? 'out of order' : '', Math.abs(raw - p.p1) > 0.02 ? 'raw ≠ console' : '', p.p1 < P.low || p.p1 > P.high ? 'limit' : ''].filter(Boolean);
+                    const notes = [p.flags.gapBefore ? t('ready.missing_before', { gapBefore: p.flags.gapBefore }) : '', p.flags.duplicate ? 'repeat' : '', p.flags.outOfOrder ? t('ready.out_of_order') : '', Math.abs(raw - p.p1) > 0.02 ? t('ready.raw_console') : '', p.p1 < P.low || p.p1 > P.high ? 'limit' : ''].filter(Boolean);
                     return (
                       <tr key={p.arrival} className={notes.length ? 'flag' : ''}>
                         <td>{p.seq}</td><td>{p.time}</td><td>{p.p1Counts}</td><td>{raw.toFixed(3)}</td><td>{p.p1.toFixed(3)}</td><td>{p.p2.toFixed(3)}</td><td>{p.t1.toFixed(2)}</td><td>{notes.join(' · ')}</td>
@@ -480,35 +482,35 @@ function EvidenceBoard({ telemetry, viewed, onView, compact = false }: { telemet
                 </tbody>
               </table>
             </div>
-            <p className="xs muted">{advanced ? `All ${telemetry.packets.length} packets in arrival order.` : 'Packets around the first unusual reading, in arrival order. Advanced mode shows the full log.'}</p>
+            <p className="xs muted">{advanced ? t('ready.all_packets_in_arrival_order', { packets: telemetry.packets.length }) : t('ready.packets_around_the_first_unusual_reading')}</p>
           </div>
         )}
 
         {tab === 'trend' && (
           <div className="stack">
             <p className="small">
-              <b>What to look for:</b> <span className="muted">Every sensor shows <Term k="sensor noise" />. The <Term k="moving average" /> ({MOVING_AVERAGE_WINDOW} samples) smooths single jumps. A real change keeps going and is larger than its uncertainty; a glitch does not.</span>
+              <b>{t('ready.what_to_look_for')}</b> <span className="muted"><T k="ready.look_trend" params={{ n: MOVING_AVERAGE_WINDOW }} tags={{ noise: (c) => <Term k="sensor noise">{c}</Term>, ma: (c) => <Term k="moving average">{c}</Term> }} /></span>
             </p>
             <div className="chart" data-testid="chart-trend">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
                   <CartesianGrid stroke={GRID} vertical={false} />
-                  <XAxis dataKey="time" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} unit=" s" interval={19} />
-                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[15.6, 19.2]} ticks={[16, 16.8, 17.5, 18.2, 19]} unit=" bar" width={62} />
+                  <XAxis dataKey="time" tick={AXIS} tickLine={false} axisLine={{ stroke: GRID }} unit={t('fmt.axis_s')} interval={19} />
+                  <YAxis tick={AXIS} tickLine={false} axisLine={false} domain={[15.6, 19.2]} ticks={[16, 16.8, 17.5, 18.2, 19]} unit={t('fmt.axis_bar')} width={62} />
                   <Tooltip {...TOOLTIP} labelFormatter={(v) => `t = ${v} s`} />
                   <Legend wrapperStyle={{ fontFamily: 'IBM Plex Mono', fontSize: 11 }} />
                   <ReferenceLine y={P.low} stroke="#FFB84D" strokeDasharray="4 4" />
                   <ReferenceLine y={P.high} stroke="#FFB84D" strokeDasharray="4 4" />
-                  <Line name="P1 every sample (bar)" type="linear" dataKey="p1" stroke="rgba(82,215,232,0.45)" strokeWidth={1} dot={{ r: 1.2, fill: '#52D7E8', strokeWidth: 0 }} isAnimationActive={anim} animationDuration={900} connectNulls={false} />
-                  <Line name={`P1 moving average, ${MOVING_AVERAGE_WINDOW} samples (bar)`} type="linear" dataKey="avg" stroke="#E8ECF1" strokeWidth={2} dot={false} isAnimationActive={anim} animationDuration={1300} connectNulls />
+                  <Line name={t('ready.p1_every_sample_bar')} type="linear" dataKey="p1" stroke="rgba(82,215,232,0.45)" strokeWidth={1} dot={{ r: 1.2, fill: '#52D7E8', strokeWidth: 0 }} isAnimationActive={anim} animationDuration={900} connectNulls={false} />
+                  <Line name={t('ready.p1_moving_average_samples_bar', { MOVING_AVERAGE_WINDOW })} type="linear" dataKey="avg" stroke="#E8ECF1" strokeWidth={2} dot={false} isAnimationActive={anim} animationDuration={1300} connectNulls />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             <div className="stats">
-              <Stat label="P1 trend, last 60 s" value={`${fmt(evidence.p1.slopePerMin)} bar/min`} hint={`± ${evidence.p1.uncertaintyPerMin.toFixed(2)}`} />
-              <Stat label="P2 trend, last 60 s" value={`${fmt(evidence.p2.slopePerMin)} bar/min`} hint={`± ${evidence.p2.uncertaintyPerMin.toFixed(2)}`} />
-              <Stat label="T1 trend, last 60 s" value={`${fmt(evidence.t1.slopePerMin)} °C/min`} hint={`± ${evidence.t1.uncertaintyPerMin.toFixed(2)}`} />
-              <Stat label="Longest run outside limits" value={`${evidence.longestRunP1} in a row`} />
+              <Stat label={t('ready.p1_trend_last_60_s')} value={t('u.barmin', { n: fmt(evidence.p1.slopePerMin) })} hint={`± ${evidence.p1.uncertaintyPerMin.toFixed(2)}`} />
+              <Stat label={t('ready.p2_trend_last_60_s')} value={t('u.barmin', { n: fmt(evidence.p2.slopePerMin) })} hint={`± ${evidence.p2.uncertaintyPerMin.toFixed(2)}`} />
+              <Stat label={t('ready.t1_trend_last_60_s')} value={t('u.degcmin', { n: fmt(evidence.t1.slopePerMin) })} hint={`± ${evidence.t1.uncertaintyPerMin.toFixed(2)}`} />
+              <Stat label={t('ready.longest_run_outside_limits')} value={t('ready.in_a_row', { longestRunP1: evidence.longestRunP1 })} />
             </div>
           </div>
         )}
@@ -534,15 +536,15 @@ function EvidenceSummary({ telemetry }: { telemetry: Telemetry }) {
   return (
     <div className="panel" data-testid="evidence-summary">
       <div className="panel__head">
-        <span className="eyebrow">Cross-validation worksheet</span>
+        <span className="eyebrow">{t('ready.cross_validation_worksheet')}</span>
       </div>
       <div className="panel__body">
-        <div className="kv"><span>P1 samples outside limits · longest run</span><span>{e.outOfLimits.p1} · {e.longestRunP1} in a row</span></div>
-        <div className="kv"><span>P2 (independent sensor) samples outside limits</span><span>{e.outOfLimits.p2}</span></div>
-        <div className="kv"><span>P1 trend · P2 trend, last 60 s</span><span>{fmt(e.p1.slopePerMin)} · {fmt(e.p2.slopePerMin)} bar/min</span></div>
-        <div className="kv"><span>T1 trend, last 60 s</span><span>{fmt(e.t1.slopePerMin)} °C/min</span></div>
-        <div className="kv"><span>Packets where raw counts ≠ console value</span><span>{e.packets.rawMismatch}</span></div>
-        <div className="kv"><span>Missing · repeated · out-of-order packets</span><span>{e.packets.missing} · {e.packets.duplicates} · {e.packets.outOfOrder}</span></div>
+        <div className="kv"><span>{t('ready.p1_samples_outside_limits_longest_run')}</span><span>{t('ready.in_a_row_2', { p1: e.outOfLimits.p1, longestRunP1: e.longestRunP1 })}</span></div>
+        <div className="kv"><span>{t('ready.p2_independent_sensor_samples_outside_limits')}</span><span>{e.outOfLimits.p2}</span></div>
+        <div className="kv"><span>{t('ready.p1_trend_p2_trend_last_60')}</span><span>{t('ready.bar_min', { slopePerMin: fmt(e.p1.slopePerMin), slopePerMin2: fmt(e.p2.slopePerMin) })}</span></div>
+        <div className="kv"><span>{t('ready.t1_trend_last_60_s')}</span><span>{t('u.degcmin', { n: fmt(e.t1.slopePerMin) })}</span></div>
+        <div className="kv"><span>{t('ready.packets_where_raw_counts_console_value')}</span><span>{e.packets.rawMismatch}</span></div>
+        <div className="kv"><span>{t('ready.missing_repeated_out_of_order_packets')}</span><span>{e.packets.missing} · {e.packets.duplicates} · {e.packets.outOfOrder}</span></div>
       </div>
     </div>
   );
@@ -562,18 +564,18 @@ function Liftoff({ slipDays, timeline }: { slipDays: number; timeline: ReturnTyp
   }, [reduced]);
   return (
     <div className="readiness__col liftoff" ref={root} data-testid="liftoff">
-      <div className="eyebrow">Simulated launch · {formatJd(timeline.launchJd)}{slipDays ? ` · ${slipDays} days after the first attempt` : ''}</div>
-      <h1 className="liftoff__title">LIFTOFF</h1>
-      <p className="lead">KAZMARS-1 is on its way. The next time you make a decision, your spacecraft will be more than a hundred million kilometres away.</p>
+      <div className="eyebrow">{t('ready.simulated_launch', { date: formatJd(timeline.launchJd) })}{slipDays ? t('ready.days_after_the_first_attempt', { slipDays }) : ''}</div>
+      <h1 className="liftoff__title">{t('ready.liftoff')}</h1>
+      <p className="lead">{t('ready.kazmars_1_is_on_its_way')}</p>
       <div className="stack stack--sm">
-        <div className="liftoff__row kv"><span>Transit · simplified Hohmann estimate</span><span>{timeline.transitDays} days</span></div>
-        <div className="liftoff__row kv"><span>Mars arrival</span><span>{formatJd(timeline.arrivalJd)}</span></div>
-        <div className="liftoff__row kv"><span>Reaching the science orbit</span><span>{timeline.commissioningDays} days</span></div>
-        <div className="liftoff__row kv"><span>Science begins</span><span>{formatJd(timeline.scienceStartJd)}</span></div>
+        <div className="liftoff__row kv"><span>{t('ready.transit_simplified_hohmann_estimate')}</span><span>{t('u.days', { n: timeline.transitDays })}</span></div>
+        <div className="liftoff__row kv"><span>{t('ready.mars_arrival')}</span><span>{formatJd(timeline.arrivalJd)}</span></div>
+        <div className="liftoff__row kv"><span>{t('ready.reaching_the_science_orbit')}</span><span>{t('u.days', { n: timeline.commissioningDays })}</span></div>
+        <div className="liftoff__row kv"><span>{t('ready.science_begins')}</span><span>{formatJd(timeline.scienceStartJd)}</span></div>
       </div>
       <div className="liftoff__cta">
         <button type="button" className="btn btn--lg" onClick={() => navigate('operations')} data-testid="to-operations">
-          Begin Mars operations <ArrowRight size={16} />
+          {t('ready.begin_mars_operations')}{' '} <ArrowRight size={16} />
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { ExternalLink, X } from 'lucide-react';
+import { t } from '@/i18n';
 import { useEffect } from 'react';
 import { CHALLENGE_REFERENCE, DATA_SOURCES, PROVENANCE_LABEL } from '@/data/nasa/sources';
 import { formatLightTime, roundTripS } from '@/game/engine/comms';
@@ -22,7 +23,7 @@ function Drawer({ title, eyebrow, onClose, children }: { title: string; eyebrow:
               {title}
             </h2>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+          <button type="button" className="icon-btn" onClick={onClose} aria-label={t('panel.close')}>
             <X size={20} />
           </button>
         </div>
@@ -35,46 +36,45 @@ function Drawer({ title, eyebrow, onClose, children }: { title: string; eyebrow:
 function SourcesPanel({ onClose }: { onClose: () => void }) {
   const { reading } = useLightTime();
   return (
-    <Drawer title="Data sources" eyebrow="Where the science comes from" onClose={onClose}>
+    <Drawer title={t('panel.data_sources')} eyebrow={t('panel.where_the_science_comes_from')} onClose={onClose}>
       <div className="stack stack--lg">
         <p className="muted">
-          Every number in the game carries one of these labels. KAZMARS-1 is a fictional educational mission — it is not a NASA or government mission, and this
-          simulator is not spacecraft design software.
+          {t('panel.every_number_in_the_game_carries')}
         </p>
 
         <section className="panel panel--plain" data-testid="live-reading">
           <div className="panel__body stack stack--sm">
             <div className="row row--between row--wrap">
-              <span className="eyebrow">Earth–Mars signal delay · {reading.epochIso}</span>
+              <span className="eyebrow">{t('panel.earth_mars_signal_delay', { epochIso: reading.epochIso })}</span>
               <span className={`tag ${reading.status === 'live' ? 'tag--cyan' : 'tag--amber'}`}>
                 <span className="tag__dot" />
-                {reading.status === 'live' ? 'Live from JPL Horizons' : 'Cached snapshot'}
+                {reading.status === 'live' ? t('panel.live_from_jpl_horizons') : t('panel.cached_snapshot')}
               </span>
             </div>
             <div className="kv">
-              <span>One-way light time (Horizons “LT”)</span>
+              <span>{t('panel.one_way_light_time_horizons_lt')}</span>
               <span>
                 {reading.oneWayLightTimeS.toFixed(1)} s · {formatLightTime(reading.oneWayLightTimeS)}
               </span>
             </div>
             <div className="kv">
-              <span>Round trip (2 × one-way)</span>
+              <span>{t('panel.round_trip_2_one_way')}</span>
               <span>{formatLightTime(roundTripS(reading.oneWayLightTimeS))}</span>
             </div>
             <div className="kv">
-              <span>Range (Horizons “RG”)</span>
+              <span>{t('panel.range_horizons_rg')}</span>
               <span>
-                {Math.round(reading.rangeKm).toLocaleString('en-US')} km · {reading.rangeAu.toFixed(3)} AU
+                {t('panel.range_value', { km: Math.round(reading.rangeKm).toLocaleString('en-US'), au: reading.rangeAu.toFixed(3) })}
               </span>
             </div>
             <div className="kv">
-              <span>Range-rate (Horizons “RR”)</span>
-              <span>{reading.rangeRateKmS.toFixed(2)} km/s</span>
+              <span>{t('panel.range_rate_horizons_rr')}</span>
+              <span>{t('u.kms', { n: reading.rangeRateKmS.toFixed(2) })}</span>
             </div>
             <p className="xs muted">
-              Retrieved {new Date(reading.retrievedAt).toISOString().replace('T', ' ').slice(0, 16)} UTC.{' '}
-              {reading.status === 'cached' ? 'The live service was not reachable, so this value comes from the dated snapshot bundled with the game.' : 'Read just now through the game’s Horizons proxy.'}{' '}
-              In mission operations, time is accelerated for play: real delays are shown but you do not wait for them.
+              {t('panel.retrieved_utc', { time: new Date(reading.retrievedAt).toISOString().replace('T', ' ').slice(0, 16) })}{' '}
+              {reading.status === 'cached' ? t('panel.the_live_service_was_not_reachable') : t('panel.read_just_now_through_the_games')}{' '}
+              {t('panel.accelerated_note')}
             </p>
           </div>
         </section>
@@ -86,7 +86,7 @@ function SourcesPanel({ onClose }: { onClose: () => void }) {
             <section key={s.id} className="stack stack--sm" data-testid={`source-${s.id}`}>
               <div className="row row--wrap" style={{ gap: 8 }}>
                 <span className={`tag ${tone}`}>{p.label}</span>
-                {s.retrieved && <span className="xs mono muted">Retrieved {s.retrieved.slice(0, 10)}</span>}
+                {s.retrieved && <span className="xs mono muted">{t('panel.retrieved', { retrieved: s.retrieved.slice(0, 10) })}</span>}
               </div>
               <h3 className="subtitle">{s.title}</h3>
               <div className="small muted">{s.organization}</div>
@@ -97,13 +97,13 @@ function SourcesPanel({ onClose }: { onClose: () => void }) {
               )}
               {s.units && (
                 <div className="xs mono muted">
-                  <span className="dim">UNITS </span>
+                  <span className="dim">{t('panel.units')} </span>
                   {s.units}
                 </div>
               )}
               <div className="small">
                 <div className="eyebrow eyebrow--muted" style={{ margin: '6px 0 4px' }}>
-                  Values used
+                  {t('panel.values_used')}
                 </div>
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
                   {s.fields.map((f) => (
@@ -111,7 +111,7 @@ function SourcesPanel({ onClose }: { onClose: () => void }) {
                   ))}
                 </ul>
                 <div className="eyebrow eyebrow--muted" style={{ margin: '10px 0 4px' }}>
-                  Where it affects the game
+                  {t('panel.where_it_affects_the_game')}
                 </div>
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
                   {s.usedFor.map((f) => (
@@ -129,9 +129,7 @@ function SourcesPanel({ onClose }: { onClose: () => void }) {
           <h3 className="subtitle">{CHALLENGE_REFERENCE.title}</h3>
           <p className="small muted">{CHALLENGE_REFERENCE.note}</p>
           <p className="small muted">
-            AI disclosure: this game’s code was written with AI assistance (Claude Code) under the team’s direction. It contains no AI-generated images, video or
-            recorded audio; all 3D visuals are procedural and all sounds are synthesised in the browser. Fonts: Space Grotesk, Inter and IBM Plex Mono (SIL Open
-            Font License).
+            {t('panel.ai_disclosure_this_games_code_was')}
           </p>
         </section>
       </div>
@@ -143,54 +141,54 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
   const settings = useGame((s) => s.settings);
   const set = useGame((s) => s.setSettings);
   const modes: { id: GameMode; label: string; text: string }[] = [
-    { id: 'guided', label: 'Guided', text: 'Explains each decision and recommends sensible options.' },
-    { id: 'advanced', label: 'Advanced', text: 'Adds engineering detail, formulas, assumptions and raw data.' },
+    { id: 'guided', label: t('panel.guided'), text: t('panel.explains_each_decision_and_recommends_sensible') },
+    { id: 'advanced', label: t('panel.advanced'), text: t('panel.adds_engineering_detail_formulas_assumptions_a') },
   ];
   const qualities: { id: Quality; label: string }[] = [
-    { id: 'high', label: 'High' },
-    { id: 'balanced', label: 'Balanced' },
-    { id: 'low', label: 'Low' },
+    { id: 'high', label: t('panel.high') },
+    { id: 'balanced', label: t('panel.balanced') },
+    { id: 'low', label: t('panel.low') },
   ];
   return (
-    <Drawer title="Settings" eyebrow="Play your way" onClose={onClose}>
+    <Drawer title={t('panel.settings')} eyebrow={t('panel.play_your_way')} onClose={onClose}>
       <div className="stack stack--lg">
         <section className="stack stack--sm">
-          <div className="eyebrow eyebrow--muted">Game mode</div>
+          <div className="eyebrow eyebrow--muted">{t('panel.game_mode')}</div>
           <div className="stack stack--sm">
             {modes.map((m) => (
               <button key={m.id} type="button" className="option" aria-pressed={settings.mode === m.id} onClick={() => set({ mode: m.id })}>
-                <div className="option__name">{m.label} mode</div>
+                <div className="option__name">{t('panel.mode', { m: m.label })}</div>
                 <div className="small muted">{m.text}</div>
               </button>
             ))}
           </div>
         </section>
         <section className="stack stack--sm">
-          <div className="eyebrow eyebrow--muted">Visual quality</div>
-          <div className="segmented" role="group" aria-label="Visual quality">
+          <div className="eyebrow eyebrow--muted">{t('panel.visual_quality')}</div>
+          <div className="segmented" role="group" aria-label={t('panel.visual_quality')}>
             {qualities.map((q) => (
               <button key={q.id} type="button" aria-pressed={settings.quality === q.id} onClick={() => set({ quality: q.id })}>
                 {q.label}
               </button>
             ))}
           </div>
-          <p className="xs muted">Low uses fewer stars, simpler planet shading and no shadows — choose it if the game feels slow.</p>
+          <p className="xs muted">{t('panel.low_uses_fewer_stars_simpler_planet')}</p>
         </section>
         <section className="stack stack--sm">
-          <div className="eyebrow eyebrow--muted">Motion</div>
-          <div className="segmented" role="group" aria-label="Motion">
+          <div className="eyebrow eyebrow--muted">{t('panel.motion')}</div>
+          <div className="segmented" role="group" aria-label={t('panel.motion')}>
             <button type="button" aria-pressed={!settings.reducedMotion} onClick={() => set({ reducedMotion: false })}>
-              Full motion
+              {t('panel.full_motion')}
             </button>
             <button type="button" aria-pressed={settings.reducedMotion} onClick={() => set({ reducedMotion: true })}>
-              Reduced motion
+              {t('panel.reduced_motion')}
             </button>
           </div>
-          <p className="xs muted">Reduced motion removes camera flights, rotation and animated transitions.</p>
+          <p className="xs muted">{t('panel.reduced_motion_removes_camera_flights_rotati')}</p>
         </section>
         <section className="stack stack--sm">
-          <div className="eyebrow eyebrow--muted">Sound</div>
-          <p className="small muted">Use the speaker button in the top bar. All sounds are synthesised in your browser and are never needed to play.</p>
+          <div className="eyebrow eyebrow--muted">{t('panel.sound')}</div>
+          <p className="small muted">{t('panel.use_the_speaker_button_in_the')}</p>
         </section>
       </div>
     </Drawer>
@@ -204,8 +202,8 @@ export function TeamSetup() {
   return (
     <div className="stack">
       <div className="row row--wrap">
-        <span className="small muted">Players on this device</span>
-        <div className="segmented" role="group" aria-label="Number of players">
+        <span className="small muted">{t('panel.players_on_this_device')}</span>
+        <div className="segmented" role="group" aria-label={t('panel.number_of_players')}>
           {[1, 2, 3, 4].map((n) => (
             <button key={n} type="button" aria-pressed={players.length === n} onClick={() => resize(n)} data-testid={`players-${n}`}>
               {n}
@@ -220,7 +218,7 @@ export function TeamSetup() {
             <input
               value={p.name}
               maxLength={18}
-              aria-label={`Name of the ${ROLES[p.role].label}`}
+              aria-label={t('panel.name_of_the', { role: ROLES[p.role].label })}
               onChange={(e) => setPlayers(players.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))}
             />
             <span className="xs muted">{ROLES[p.role].focus}</span>
@@ -228,9 +226,9 @@ export function TeamSetup() {
         ))}
       </div>
       {players.length > 1 ? (
-        <p className="xs muted">At each key decision every role proposes an answer, then the Mission Director confirms the team’s choice.</p>
+        <p className="xs muted">{t('panel.at_each_key_decision_every_role')}</p>
       ) : (
-        <p className="xs muted">Playing solo? You hold all four roles. Add players any time from the team button in the top bar.</p>
+        <p className="xs muted">{t('panel.playing_solo_you_hold_all_four')}</p>
       )}
     </div>
   );
@@ -238,7 +236,7 @@ export function TeamSetup() {
 
 function TeamPanel({ onClose }: { onClose: () => void }) {
   return (
-    <Drawer title="Mission team" eyebrow="One to four players · same screen" onClose={onClose}>
+    <Drawer title={t('panel.mission_team')} eyebrow={t('panel.one_to_four_players_same_screen')} onClose={onClose}>
       <TeamSetup />
     </Drawer>
   );

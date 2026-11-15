@@ -1,4 +1,5 @@
 import { SLOTS } from '@/data/components';
+import { t } from '@/i18n';
 import { useGame } from '@/game/state/store';
 
 /**
@@ -20,7 +21,7 @@ export function Fallback2D({ loading = false }: { loading?: boolean }) {
       {scene !== 'designer' && <div className={`fallback-planet ${nearEarth || scene === 'intro' ? 'fallback-planet--earth' : 'fallback-planet--mars'}`} />}
       {scene === 'intro' && <div className="fallback-planet fallback-planet--mars fallback-planet--far" />}
       {scene === 'designer' && (
-        <svg className="schematic" viewBox="-220 -150 440 300" role="group" aria-label="Spacecraft schematic">
+        <svg className="schematic" viewBox="-220 -150 440 300" role="group" aria-label={t('fallback.spacecraft_schematic')}>
           {[1, -1].map((side) => (
             <g key={side} className={cls('power')} onClick={() => setActive('power')} transform={`scale(${side} 1)`}>
               <line x1="38" y1="0" x2="58" y2="0" />
@@ -56,7 +57,7 @@ export function Fallback2D({ loading = false }: { loading?: boolean }) {
           ))}
         </svg>
       )}
-      <div className="fallback-note">{loading ? 'Loading 3D view…' : '2D mode — 3D graphics are not available on this device. The full mission is still playable.'}</div>
+      <div className="fallback-note">{loading ? t('fallback.loading_3d_view') : t('fallback.2d_mode_3d_graphics_are_not')}</div>
     </div>
   );
 }

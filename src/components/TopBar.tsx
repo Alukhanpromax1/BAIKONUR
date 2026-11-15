@@ -1,4 +1,5 @@
 import { Database, Settings, Users, Volume2, VolumeX } from 'lucide-react';
+import { t } from '@/i18n';
 import { useEffect } from 'react';
 import { setSoundEnabled, sfx } from '@/audio/sound';
 import { formatLightTime } from '@/game/engine/comms';
@@ -44,18 +45,18 @@ export function TopBar() {
 
   return (
     <header className={`topbar ${bare ? 'topbar--bare' : ''}`}>
-      <div className="brand" aria-label="BAIKONUR: MISSION CONTROL">
+      <div className="brand" aria-label={t('top.baikonur_mission_control')}>
         <BrandMark />
         {!bare && (
           <div className="brand__text">
-            <div className="brand__name">BAIKONUR</div>
-            <div className="brand__sub">MISSION CONTROL</div>
+            <div className="brand__name">{t('top.baikonur')}</div>
+            <div className="brand__sub">{t('top.mission_control')}</div>
           </div>
         )}
       </div>
 
       {!bare && (
-        <ol className="stages" aria-label="Mission stages">
+        <ol className="stages" aria-label={t('top.mission_stages')}>
           {STAGES.map((st, i) => {
             const pos = SCENE_ORDER.indexOf(st.id);
             const cls = pos < index ? 'stage--done' : pos === index ? 'stage--current' : '';
@@ -71,27 +72,27 @@ export function TopBar() {
 
       <div className="topbar__right">
         {!bare && (
-          <button type="button" className="lt-chip" onClick={() => openPanel('sources')} title="Earth–Mars one-way light time from NASA/JPL Horizons. Click for sources.">
-            <span className="lt-chip__label">EARTH → MARS</span>
+          <button type="button" className="lt-chip" onClick={() => openPanel('sources')} title={t('top.earth_mars_one_way_light_time')}>
+            <span className="lt-chip__label">{t('top.earth_mars')}</span>
             <span data-testid="light-time">{formatLightTime(reading.oneWayLightTimeS)}</span>
             <span className={`tag ${reading.status === 'live' ? 'tag--cyan' : 'tag--amber'}`} data-testid="light-time-status">
               <span className={`tag__dot ${reading.status === 'live' ? 'tag__dot--pulse' : ''}`} />
-              {reading.status === 'live' ? 'LIVE' : 'CACHED'}
+              {reading.status === 'live' ? t('top.live') : t('top.cached')}
             </span>
           </button>
         )}
         {!bare && (
-          <button type="button" className="icon-btn" onClick={() => openPanel('team')} aria-label={`Team: ${players.length} player${players.length > 1 ? 's' : ''}`} title="Team">
+          <button type="button" className="icon-btn" onClick={() => openPanel('team')} aria-label={t('top.team_player', { players: players.length, s: players.length > 1 ? 's' : '' })} title={t('top.team')}>
             <Users size={18} />
           </button>
         )}
-        <button type="button" className="icon-btn" onClick={() => openPanel('sources')} aria-label="Data sources" title="Data sources">
+        <button type="button" className="icon-btn" onClick={() => openPanel('sources')} aria-label={t('top.data_sources')} title={t('top.data_sources')}>
           <Database size={18} />
         </button>
-        <button type="button" className="icon-btn" onClick={toggleSound} aria-pressed={sound} aria-label={sound ? 'Mute sound' : 'Turn sound on'} title={sound ? 'Mute sound' : 'Turn sound on'}>
+        <button type="button" className="icon-btn" onClick={toggleSound} aria-pressed={sound} aria-label={sound ? t('top.mute_sound') : t('top.turn_sound_on')} title={sound ? t('top.mute_sound') : t('top.turn_sound_on')}>
           {sound ? <Volume2 size={18} /> : <VolumeX size={18} />}
         </button>
-        <button type="button" className="icon-btn" onClick={() => openPanel('settings')} aria-label="Settings" title="Settings">
+        <button type="button" className="icon-btn" onClick={() => openPanel('settings')} aria-label={t('top.settings')} title={t('top.settings')}>
           <Settings size={18} />
         </button>
       </div>

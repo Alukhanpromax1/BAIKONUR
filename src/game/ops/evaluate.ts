@@ -1,4 +1,5 @@
 import type { MissionDesign } from '@/types';
+import { t } from '@/i18n';
 import {
   POWER_MARGIN_RULE,
   POWER_MODE,
@@ -41,15 +42,15 @@ const pct = (x: number) => `${x >= 0 ? '+' : ''}${Math.round(x * 100)} %`;
 const gb = (mb: number) => `${(mb / 1000).toFixed(1)} Gb`;
 
 export const CHOICE_LABEL: Record<string, string> = {
-  store: 'Keep observing and store everything',
-  reduce: 'Observe less during the blackout',
-  command: 'Keep commanding through the blackout',
-  full: 'Continue full operations',
-  cycle: 'Duty-cycle instruments and radio',
-  reserve: 'Deep power saving',
-  campaign: 'Run a high-rate storm campaign',
-  nominal: 'Continue the normal plan',
-  protect: 'Cut data to protect the recorder',
+  get store() { return t('review.choice_label.store'); },
+  get reduce() { return t('review.choice_label.reduce'); },
+  get command() { return t('review.choice_label.command'); },
+  get full() { return t('review.choice_label.full'); },
+  get cycle() { return t('review.choice_label.cycle'); },
+  get reserve() { return t('review.choice_label.reserve'); },
+  get campaign() { return t('review.choice_label.campaign'); },
+  get nominal() { return t('review.choice_label.nominal'); },
+  get protect() { return t('review.choice_label.protect'); },
 };
 
 /**
@@ -68,22 +69,22 @@ export function reviewOpsDecisions(design: MissionDesign, decisions: OpsDecision
       const overflow = probe.lostInWindowMb.conjunction > 0;
       const best: ConjunctionChoice = overflow ? 'reduce' : 'store';
       const blackoutDays = (event.windowEnd - event.windowStart) * actual.stepDays;
-      const evidence = `Mars passed behind the Sun: about ${blackoutDays} days with no link. Recorder capacity ${gb(actual.capacityMb)}; a full-rate blackout would produce ${gb(blackoutDays * actual.nominalDailyMb)} on top of what was already stored.`;
+      const evidence = t('review.mars_passed_behind_the_sun_about', { blackoutDays, capacityMb: gb(actual.capacityMb), nominalDailyMb: gb(blackoutDays * actual.nominalDailyMb) });
       let points = 0;
       let why = '';
       if (choice === 'command') {
-        why = 'Radio signals passing close to the Sun are corrupted by its hot outer atmosphere. A garbled command put the spacecraft into safe mode for ten days. Real missions pause commanding during conjunction for this reason.';
+        why = t('review.radio_signals_passing_close_to_the');
       } else if (choice === best) {
         points = OPS_POINTS_EACH;
         why = overflow
-          ? 'The recorder could not hold a full-rate blackout, so trimming observations to the most valuable ones avoided overwriting data.'
-          : 'The recorder had room for the whole blackout, so nothing was lost and no science was given up.';
+          ? t('review.the_recorder_could_not_hold_a')
+          : t('review.the_recorder_had_room_for_the');
       } else if (choice === 'store') {
         points = 1;
-        why = `The recorder filled during the blackout and ${gb(actual.lostInWindowMb.conjunction)} of data was overwritten before it could be sent.`;
+        why = t('review.the_recorder_filled_during_the_blackout', { conjunction: gb(actual.lostInWindowMb.conjunction) });
       } else {
         points = 2;
-        why = 'A safe choice, but more cautious than needed: the recorder had room for everything, so some science was given up for no reason.';
+        why = t('review.a_safe_choice_but_more_cautious');
       }
       reviews.push({ event: 'conjunction', choice, best, points, maxPoints: OPS_POINTS_EACH, evidence, why, good: choice === best });
     }
@@ -93,21 +94,21 @@ export function reviewOpsDecisions(design: MissionDesign, decisions: OpsDecision
       const worst = actual.worstFullMarginPct;
       const best = requiredPowerMode(worst);
       const gap = POWER_ORDER.indexOf(choice) - POWER_ORDER.indexOf(best);
-      const evidence = `Farthest from the Sun, the full-operations power margin fell to ${pct(worst)}. Flight rule: keep at least +5 %, because heaters and the transmitter draw more than the average.`;
+      const evidence = t('review.farthest_from_the_sun_the_full', { worst: pct(worst) });
       let points: number;
       let why: string;
       if (gap === 0) {
         points = OPS_POINTS_EACH;
         why =
           best === 'full'
-            ? 'Your arrays had margin to spare, so there was no reason to give up observations.'
-            : 'The margin was too thin for full operations. Saving just enough power kept the spacecraft healthy with the smallest loss of science.';
+            ? t('review.your_arrays_had_margin_to_spare')
+            : t('review.the_margin_was_too_thin_for');
       } else if (gap > 0) {
         points = gap === 1 ? 2 : 1;
-        why = 'The spacecraft stayed safe, but you saved more power than the margin required and gave up observations you could have made.';
+        why = t('review.the_spacecraft_stayed_safe_but_you');
       } else {
         points = 0;
-        why = `The margin rule was broken and the battery ran down. The spacecraft protected itself in safe mode and lost ${actual.safeModeDays} days of science before the Flight Director ordered deeper power saving.`;
+        why = t('review.the_margin_rule_was_broken_and', { safeModeDays: actual.safeModeDays });
       }
       reviews.push({ event: 'power', choice, best, points, maxPoints: OPS_POINTS_EACH, evidence, why, good: gap === 0 });
     }
@@ -119,23 +120,23 @@ export function reviewOpsDecisions(design: MissionDesign, decisions: OpsDecision
       const best: StormChoice = campaign.lostInWindowMb.storm === 0 ? 'campaign' : nominal.lostInWindowMb.storm === 0 ? 'nominal' : 'protect';
       const gap = STORM_ORDER.indexOf(choice) - STORM_ORDER.indexOf(best);
       const step = actual.steps[event.promptStep] ?? actual.steps[actual.steps.length - 1];
-      const evidence = `When the storm began, the recorder held ${gb(step.storedMb)} of ${gb(actual.capacityMb)} and the link could carry ${Math.round(step.downlinkCapacityMb / actual.stepDays)} Mb per day against ${Math.round(actual.nominalDailyMb)} Mb produced.`;
+      const evidence = t('review.when_the_storm_began_the_recorder', { storedMb: gb(step.storedMb), capacityMb: gb(actual.capacityMb), stepDays: Math.round(step.downlinkCapacityMb / actual.stepDays), nominalDailyMb: Math.round(actual.nominalDailyMb) });
       let points: number;
       let why: string;
       if (gap === 0) {
         points = OPS_POINTS_EACH;
         why =
           best === 'campaign'
-            ? 'Link and recorder had headroom, so the extra storm observations all reached Earth — a rare science opportunity fully used.'
+            ? t('review.link_and_recorder_had_headroom_so')
             : best === 'nominal'
-              ? 'There was no room for extra data, but the normal plan fitted. You observed the storm without losing anything.'
-              : 'The recorder was already under pressure. Cutting the data rate protected what was stored.';
+              ? t('review.there_was_no_room_for_extra')
+              : t('review.the_recorder_was_already_under_pressure');
       } else if (gap > 0) {
         points = 1;
-        why = `More data was collected than the link and recorder could handle: ${gb(actual.lostInWindowMb.storm)} was overwritten before it reached Earth.`;
+        why = t('review.more_data_was_collected_than_the', { storm: gb(actual.lostInWindowMb.storm) });
       } else {
         points = 2;
-        why = 'Nothing was lost, but there was headroom you did not use. A once-a-year storm was observed with less detail than your spacecraft could have delivered.';
+        why = t('review.nothing_was_lost_but_there_was');
       }
       reviews.push({ event: 'storm', choice, best, points, maxPoints: OPS_POINTS_EACH, evidence, why, good: gap === 0 });
     }

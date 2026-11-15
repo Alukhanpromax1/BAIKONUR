@@ -1,4 +1,6 @@
 import { ArrowLeft, ArrowRight, ChevronDown, Clock, Orbit, Rocket } from 'lucide-react';
+import { t, useLangStore } from '@/i18n';
+import { T } from '@/i18n/Trans';
 import { useMemo, useState } from 'react';
 import { navigate } from '@/app/navigation';
 import { sfx } from '@/audio/sound';
@@ -19,7 +21,7 @@ type Section = 'vehicle' | 'orbit' | 'duration';
 function RocketCompare({ wetKg, selected }: { wetKg: number; selected: string }) {
   const maxH = Math.max(...LAUNCH_VEHICLES.map((v) => v.heightM));
   return (
-    <svg className="rockets" viewBox="0 0 300 150" role="img" aria-label="Launch vehicle size comparison">
+    <svg className="rockets" viewBox="0 0 300 150" role="img" aria-label={t('launch.launch_vehicle_size_comparison')}>
       <line x1="10" y1="132" x2="290" y2="132" stroke="#94b2d6" strokeOpacity="0.3" />
       {LAUNCH_VEHICLES.map((v, i) => {
         const h = (v.heightM / maxH) * 110;
@@ -41,7 +43,7 @@ function RocketCompare({ wetKg, selected }: { wetKg: number; selected: string })
               {v.name}
             </text>
             <text x={x + w / 2 + 12} y={132 - h + 14} className="svg-label" fill={fits ? '#9aa8be' : '#ff7a6b'}>
-              {v.capacityKg} kg
+              {t('u.kg', { n: v.capacityKg })}
             </text>
           </g>
         );
@@ -59,7 +61,8 @@ export default function LaunchPlan() {
   const mode = useGame((s) => s.settings.mode);
   const players = useGame((s) => s.players);
   const [open, setOpen] = useState<Section>('vehicle');
-  const evaluation = useMemo(() => evaluateDesign(design), [design]);
+  const lang = useLangStore((s) => s.lang);
+  const evaluation = useMemo(() => evaluateDesign(design), [design, lang]);
   const ref = useReveal<HTMLDivElement>();
   const objective = OBJECTIVE_BY_ID[design.objective];
   const plan = RECOMMENDED_PLAN[design.objective];
@@ -74,19 +77,19 @@ export default function LaunchPlan() {
   return (
     <div className="workbench" ref={ref}>
       <div className="workbench__head hit" data-reveal>
-        <div className="eyebrow">Launch plan · {objective.name}</div>
-        <h1 className="title">Choose the rocket, the orbit and the mission length</h1>
-        <p className="small muted">Orbits are drawn compressed, not to scale. Simplified educational model — not a flight trajectory.</p>
+        <div className="eyebrow">{t('launch.launch_plan', { objective: objective.name })}</div>
+        <h1 className="title">{t('launch.choose_the_rocket_the_orbit_and')}</h1>
+        <p className="small muted">{t('launch.orbits_are_drawn_compressed_not_to')}</p>
         {lead && players.length > 1 && (
           <span className="tag tag--cyan" style={{ marginTop: 6 }}>
-            Lead: {lead.name} · {ROLES.comms.label}
+            {t('launch.lead', { lead: lead.name, comms: ROLES.comms.label })}
           </span>
         )}
       </div>
 
       <aside className="workbench__panel panel" data-reveal>
         <div className="panel__head">
-          <span className="eyebrow eyebrow--muted">Three choices</span>
+          <span className="eyebrow eyebrow--muted">{t('launch.three_choices')}</span>
           <ProvenanceTag kind="educational_game_assumption" />
         </div>
         <div className="workbench__slots scroll">
@@ -94,15 +97,15 @@ export default function LaunchPlan() {
             <button type="button" className="slot__head" aria-expanded={open === 'vehicle'} onClick={() => toggle('vehicle')} data-testid="section-vehicle">
               <span className="slot__icon"><Rocket size={16} /></span>
               <span className="grow">
-                <span className="slot__label">1 · Launch vehicle</span>
-                <span className="slot__current">{VEHICLE_BY_ID[design.vehicle].name} · {VEHICLE_BY_ID[design.vehicle].capacityKg} kg</span>
+                <span className="slot__label">{t('launch.1_launch_vehicle')}</span>
+                <span className="slot__current">{t('launch.kg_2', { vehicle: VEHICLE_BY_ID[design.vehicle].name, capacityKg: VEHICLE_BY_ID[design.vehicle].capacityKg })}</span>
               </span>
               <ChevronDown size={16} className="slot__chev" />
             </button>
             {open === 'vehicle' && (
               <div className="slot__body stack stack--sm">
                 <p className="small muted">
-                  Fictional “Tulpar” rockets invented for this game. Your fuelled spacecraft weighs <b className="mono" style={{ color: 'var(--text)' }}>{Math.round(evaluation.mass.wetKg)} kg</b>.
+                  <T k="launch.vehicle_intro" params={{ kg: Math.round(evaluation.mass.wetKg) }} tags={{ b: (c) => <b className="mono" style={{ color: 'var(--text)' }}>{c}</b> }} />
                 </p>
                 <RocketCompare wetKg={evaluation.mass.wetKg} selected={design.vehicle} />
                 {LAUNCH_VEHICLES.map((v) => {
@@ -111,12 +114,12 @@ export default function LaunchPlan() {
                     <button key={v.id} type="button" className="option" aria-pressed={design.vehicle === v.id} onClick={() => { sfx.select(); setVehicle(v.id); }} data-testid={`vehicle-${v.id}`}>
                       <div className="option__top">
                         <span className="option__name">{v.name} <span className="small muted">· {v.klass}</span></span>
-                        <span className={`tag ${fits ? '' : 'tag--coral'}`}>{fits ? 'Fits' : 'Too small'}</span>
+                        <span className={`tag ${fits ? '' : 'tag--coral'}`}>{fits ? t('launch.fits') : t('launch.too_small')}</span>
                       </div>
                       <div className="small muted">{v.description}</div>
                       <div className="option__meta">
-                        <span>Capacity to Mars <b>{v.capacityKg} kg</b></span>
-                        <span>Cost <b>{v.costCr} cr</b></span>
+                        <span><T k="launch.meta_capacity" params={{ n: v.capacityKg }} /></span>
+                        <span><T k="launch.meta_cost" params={{ n: v.costCr }} /></span>
                       </div>
                     </button>
                   );
@@ -129,7 +132,7 @@ export default function LaunchPlan() {
             <button type="button" className="slot__head" aria-expanded={open === 'orbit'} onClick={() => toggle('orbit')} data-testid="section-orbit">
               <span className="slot__icon"><Orbit size={16} /></span>
               <span className="grow">
-                <span className="slot__label">2 · Orbit at Mars</span>
+                <span className="slot__label">{t('launch.2_orbit_at_mars')}</span>
                 <span className="slot__current">{orbit.name}</span>
               </span>
               <ChevronDown size={16} className="slot__chev" />
@@ -142,33 +145,32 @@ export default function LaunchPlan() {
                     <button key={o.id} type="button" className="option" aria-pressed={selected} onClick={() => { sfx.select(); setOrbit(o.id); }} data-testid={`orbit-${o.id}`}>
                       <div className="option__top">
                         <span className="option__name">{o.name}</span>
-                        {guided && plan.orbit === o.id && <span className="tag tag--cyan">Suggested</span>}
+                        {guided && plan.orbit === o.id && <span className="tag tag--cyan">{t('launch.suggested')}</span>}
                       </div>
                       <div className="small muted">{o.shape}</div>
                       {selected && (
                         <>
                           <p className="small" style={{ marginTop: 8 }}>{o.description}</p>
                           <dl className="effects">
-                            <dt>Coverage</dt><dd>{o.effects.coverage}</dd>
-                            <dt>Science</dt><dd>{o.effects.science}</dd>
-                            <dt>Comms</dt><dd>{o.effects.comms}</dd>
-                            <dt>Duration</dt><dd>{o.effects.duration}</dd>
-                            <dt>Limits</dt><dd>{o.effects.constraints}</dd>
+                            <dt>{t('launch.coverage')}</dt><dd>{o.effects.coverage}</dd>
+                            <dt>{t('launch.science')}</dt><dd>{o.effects.science}</dd>
+                            <dt>{t('launch.comms')}</dt><dd>{o.effects.comms}</dd>
+                            <dt>{t('launch.duration')}</dt><dd>{o.effects.duration}</dd>
+                            <dt>{t('launch.limits')}</dt><dd>{o.effects.constraints}</dd>
                           </dl>
                         </>
                       )}
                       <div className="option__meta">
-                        <span><Term k="delta-v" passive>Δv</Term> <b>{o.deltaVKmS.toFixed(2)} km/s</b></span>
-                        <span>In shadow <b>{Math.round(o.eclipseFraction * 100)} %</b></span>
-                        <span>Contact <b>{o.contactHoursPerDay} h/day</b></span>
+                        <span><Term k="delta-v" passive>Δv</Term> <b>{t('u.kms', { n: o.deltaVKmS.toFixed(2) })}</b></span>
+                        <span><T k="launch.meta_shadow" params={{ n: Math.round(o.eclipseFraction * 100) }} /></span>
+                        <span><T k="launch.meta_contact" params={{ n: o.contactHoursPerDay }} /></span>
                       </div>
                     </button>
                   );
                 })}
                 {mode === 'advanced' && (
                   <p className="xs muted">
-                    Assumptions: velocity change, shadow fraction and contact hours are fixed illustrative values per orbit. Orbit rings in the 3D view use a
-                    logarithmic altitude scale. Low orbit assumes <Term k="aerobraking" />.
+                    <T k="launch.assumptions" tags={{ ab: (c) => <Term k="aerobraking">{c}</Term> }} />
                   </p>
                 )}
               </div>
@@ -179,8 +181,8 @@ export default function LaunchPlan() {
             <button type="button" className="slot__head" aria-expanded={open === 'duration'} onClick={() => toggle('duration')} data-testid="section-duration">
               <span className="slot__icon"><Clock size={16} /></span>
               <span className="grow">
-                <span className="slot__label">3 · Science mission length</span>
-                <span className="slot__current">{DURATION_BY_ID[design.duration].name} · {DURATION_BY_ID[design.duration].scienceDays} days</span>
+                <span className="slot__label">{t('launch.3_science_mission_length')}</span>
+                <span className="slot__current">{t('launch.days', { duration: DURATION_BY_ID[design.duration].name, scienceDays: DURATION_BY_ID[design.duration].scienceDays })}</span>
               </span>
               <ChevronDown size={16} className="slot__chev" />
             </button>
@@ -190,10 +192,10 @@ export default function LaunchPlan() {
                   <button key={d.id} type="button" className="option" aria-pressed={design.duration === d.id} onClick={() => { sfx.select(); setDuration(d.id); }} data-testid={`duration-${d.id}`}>
                     <div className="option__top">
                       <span className="option__name">{d.name}</span>
-                      {guided && plan.duration === d.id && <span className="tag tag--cyan">Suggested</span>}
+                      {guided && plan.duration === d.id && <span className="tag tag--cyan">{t('launch.suggested')}</span>}
                     </div>
                     <div className="small muted">{d.description}</div>
-                    <div className="option__meta"><span>Science <b>{d.scienceDays} days</b></span></div>
+                    <div className="option__meta"><span><T k="launch.meta_science" params={{ n: d.scienceDays }} /></span></div>
                   </button>
                 ))}
               </div>
@@ -202,7 +204,7 @@ export default function LaunchPlan() {
           {guided && (
             <div style={{ padding: '4px 14px 14px' }}>
               <Coach who="arman">
-                Rocket, orbit and spacecraft have to agree. If a meter turns red, the message above it says exactly which number is over and what would fix it.
+                {t('launch.rocket_orbit_and_spacecraft_have_to')}
               </Coach>
             </div>
           )}
@@ -210,11 +212,11 @@ export default function LaunchPlan() {
         <div className="workbench__foot stack">
           <SciencePotential evaluation={evaluation} objectiveName={objective.name} />
           <div className="row">
-            <button type="button" className="btn btn--ghost" onClick={() => navigate('designer')} data-testid="back-to-designer" aria-label="Back to the design bay">
+            <button type="button" className="btn btn--ghost" onClick={() => navigate('designer')} data-testid="back-to-designer" aria-label={t('launch.back_to_the_design_bay')}>
               <ArrowLeft size={16} />
             </button>
             <button type="button" className="btn btn--lg grow" disabled={!evaluation.launchReady} onClick={() => navigate('readiness')} data-testid="to-readiness">
-              {evaluation.launchReady ? 'Go to launch readiness' : 'Resolve the red limits first'} {evaluation.launchReady && <ArrowRight size={16} />}
+              {evaluation.launchReady ? t('launch.go_to_launch_readiness') : t('launch.resolve_the_red_limits_first')} {evaluation.launchReady && <ArrowRight size={16} />}
             </button>
           </div>
         </div>
@@ -222,7 +224,7 @@ export default function LaunchPlan() {
 
       <div className="workbench__bottom" data-reveal>
         <IssueList issues={evaluation.issues} max={2} />
-        <ResourceDashboard evaluation={evaluation} context={evaluation.launchReady ? 'Resource check passed. Amber warnings will matter during the mission — you can still launch.' : 'Resource check failed: every red meter must be fixed before launch.'} />
+        <ResourceDashboard evaluation={evaluation} context={evaluation.launchReady ? t('launch.check_passed') : t('launch.check_failed')} />
       </div>
     </div>
   );

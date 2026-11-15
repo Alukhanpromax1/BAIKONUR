@@ -1,0 +1,17 @@
+export const timeline = {
+  'timeline.mission_preparation': 'Mission preparation',
+  'timeline.design_testing_and_launch_readiness': 'Design, testing and launch readiness.',
+  'timeline.launch': 'Launch',
+  'timeline.departure_in_the_late_2026_earth': 'Departure in the late-2026 Earth–Mars window.',
+  'timeline.transit': 'Transit',
+  'timeline.cruise_to_mars_simplified_hohmann_estimate': 'Cruise to Mars (simplified Hohmann estimate).',
+  'timeline.mars_arrival': 'Mars arrival',
+  'timeline.engine_burn_to_be_captured_by': 'Engine burn to be captured by Mars.',
+  'timeline.orbital_operations': 'Orbital operations',
+  'timeline.aerobraking_down_to_the_mapping_orbit': 'Aerobraking down to the mapping orbit.',
+  'timeline.orbit_trimming_and_instrument_check_out': 'Orbit trimming and instrument check-out.',
+  'timeline.scientific_observations': 'Scientific observations',
+  'timeline.the_primary_science_phase': 'The primary science phase.',
+  'timeline.final_evaluation': 'Final evaluation',
+  'timeline.mission_report_and_lessons_learned': 'Mission report and lessons learned.',
+};

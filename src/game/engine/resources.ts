@@ -1,4 +1,5 @@
 import { COMPONENT_BY_ID } from '@/data/components';
+import { t } from '@/i18n';
 import { GAME } from '@/data/constants';
 import { VEHICLE_BY_ID } from '@/data/launchVehicles';
 import { ORBIT_BY_ID } from '@/data/orbits';
@@ -135,78 +136,78 @@ export function evaluateDesign(design: MissionDesign): DesignEvaluation {
     issues.push({
       severity: 'block',
       resource: 'mass',
-      title: 'Not enough propellant capacity',
-      explain: `Reaching the ${orbit.name.toLowerCase()} with a ${Math.round(mass.dryKg)} kg spacecraft needs ${Math.round(mass.propellantKg)} kg of propellant, but the selected tanks hold ${mass.tankCapacityKg} kg.`,
-      fix: 'Choose high-capacity propulsion, lighten the spacecraft, or pick an orbit that needs less velocity change.',
+      title: t('issue.not_enough_propellant_capacity'),
+      explain: t('issue.reaching_the_with_a_kg_spacecraft', { orbit: orbit.name.toLowerCase(), dryKg: Math.round(mass.dryKg), propellantKg: Math.round(mass.propellantKg), tankCapacityKg: mass.tankCapacityKg }),
+      fix: t('issue.choose_high_capacity_propulsion_lighten_the'),
     });
   }
   if (!mass.launchOk) {
     issues.push({
       severity: 'block',
       resource: 'mass',
-      title: 'Too heavy for the launch vehicle',
-      explain: `Your fuelled spacecraft weighs ${Math.round(mass.wetKg)} kg, but ${vehicle.name} can send only ${vehicle.capacityKg} kg toward Mars.`,
-      fix: 'Pick a larger launch vehicle, remove mass, or choose an orbit that needs less propellant.',
+      title: t('issue.too_heavy_for_the_launch_vehicle'),
+      explain: t('issue.your_fuelled_spacecraft_weighs_kg_but', { wetKg: Math.round(mass.wetKg), vehicle: vehicle.name, capacityKg: vehicle.capacityKg }),
+      fix: t('issue.pick_a_larger_launch_vehicle_remove'),
     });
   } else if (mass.marginPct > 0.3) {
     issues.push({
       severity: 'warn',
       resource: 'mass',
-      title: 'Paying for unused lift',
-      explain: `${Math.round(mass.marginKg)} kg of launch capacity (${Math.round(mass.marginPct * 100)} %) is unused.`,
-      fix: 'A smaller launch vehicle may free budget for better instruments.',
+      title: t('issue.paying_for_unused_lift'),
+      explain: t('issue.kg_of_launch_capacity_is_unused', { marginKg: Math.round(mass.marginKg), marginPct: Math.round(mass.marginPct * 100) }),
+      fix: t('issue.a_smaller_launch_vehicle_may_free'),
     });
   }
   if (power.marginW < 0) {
     issues.push({
       severity: 'block',
       resource: 'power',
-      title: 'Power demand exceeds supply',
-      explain: `Your selected configuration needs ${Math.round(power.consumptionW)} W, but the arrays deliver only ${Math.round(power.availableW)} W on average in this orbit.`,
-      fix: 'Fit the enhanced solar arrays, choose lower-power equipment, or pick an orbit with less time in shadow.',
+      title: t('issue.power_demand_exceeds_supply'),
+      explain: t('issue.your_selected_configuration_needs_w_but', { consumptionW: Math.round(power.consumptionW), availableW: Math.round(power.availableW) }),
+      fix: t('issue.fit_the_enhanced_solar_arrays_choose'),
     });
   } else if (powerWorst.marginPct < 0.05) {
     issues.push({
       severity: 'warn',
       resource: 'power',
-      title: 'Thin power margin far from the Sun',
-      explain: `At the farthest point of this mission (${maxSun.toFixed(2)} AU from the Sun) the margin drops to ${Math.round(powerWorst.marginW)} W. You will have to save power for part of the mission.`,
-      fix: 'Enhanced arrays or a higher orbit give more margin.',
+      title: t('issue.thin_power_margin_far_from_the'),
+      explain: t('issue.at_the_farthest_point_of_this', { maxSun: maxSun.toFixed(2), marginW: Math.round(powerWorst.marginW) }),
+      fix: t('issue.enhanced_arrays_or_a_higher_orbit'),
     });
   }
   if (!budget.ok) {
     issues.push({
       severity: 'block',
       resource: 'budget',
-      title: 'Over budget',
-      explain: `This mission costs ${budget.totalCr} credits, ${-budget.remainingCr} more than the ${budget.capCr}-credit budget.`,
-      fix: 'Look for the most expensive item that your science objective does not really need.',
+      title: t('issue.over_budget'),
+      explain: t('issue.this_mission_costs_credits_more_than', { totalCr: budget.totalCr, remainingCr: -budget.remainingCr, capCr: budget.capCr }),
+      fix: t('issue.look_for_the_most_expensive_item'),
     });
   }
   if (comms.coverage < 1) {
     issues.push({
       severity: 'warn',
       resource: 'comms',
-      title: 'Downlink cannot keep up',
-      explain: `The payload produces ${Math.round(gen)} Mb per day, but the link averages only ${Math.round(avgDown)} Mb per day. Data will pile up and some will be lost.`,
-      fix: 'Fit the high-capacity link, choose an orbit with more contact time, or carry a smaller payload.',
+      title: t('issue.downlink_cannot_keep_up'),
+      explain: t('issue.the_payload_produces_mb_per_day', { gen: Math.round(gen), avgDown: Math.round(avgDown) }),
+      fix: t('issue.fit_the_high_capacity_link_choose'),
     });
   } else if (worstDown < gen) {
     issues.push({
       severity: 'warn',
       resource: 'comms',
-      title: 'Link is slow when Mars is far away',
-      explain: `At ${maxAu.toFixed(2)} AU the link carries ${Math.round(worstDown)} Mb per day, less than the ${Math.round(gen)} Mb produced. The recorder must absorb the difference.`,
-      fix: 'A bigger recorder or a faster link protects your data in those months.',
+      title: t('issue.link_is_slow_when_mars_is'),
+      explain: t('issue.at_au_the_link_carries_mb', { maxAu: maxAu.toFixed(2), worstDown: Math.round(worstDown), gen: Math.round(gen) }),
+      fix: t('issue.a_bigger_recorder_or_a_faster'),
     });
   }
   if (blackoutDays > 0 && data.blackoutVolumeMb > capacityMb) {
     issues.push({
       severity: 'warn',
       resource: 'data',
-      title: 'Recorder too small for the solar conjunction',
-      explain: `For about ${blackoutDays} days Mars is behind the Sun and nothing can be sent. The payload would produce ${(data.blackoutVolumeMb / 1000).toFixed(1)} Gb, but the recorder holds ${(capacityMb / 1000).toFixed(0)} Gb.`,
-      fix: 'Carry the high-capacity recorder, or plan to observe less during the blackout.',
+      title: t('issue.recorder_too_small_for_the_solar'),
+      explain: t('issue.for_about_days_mars_is_behind', { blackoutDays, blackoutVolumeMb: (data.blackoutVolumeMb / 1000).toFixed(1), capacityMb: (capacityMb / 1000).toFixed(0) }),
+      fix: t('issue.carry_the_high_capacity_recorder_or'),
     });
   }
 

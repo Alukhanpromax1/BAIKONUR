@@ -1,4 +1,5 @@
 import { C_KM_S } from '@/data/constants';
+import { t } from '@/i18n';
 
 /**
  * Unit conventions used everywhere in the game:
@@ -33,16 +34,16 @@ export function formatLightTime(seconds: number): string {
   const total = Math.round(seconds);
   const m = Math.floor(total / 60);
   const s = total % 60;
-  return `${m} min ${String(s).padStart(2, '0')} s`;
+  return t('fmt.light_time', { m, s: String(s).padStart(2, '0') });
 }
 
 /** Formats megabits with a sensible unit. */
 export function formatData(mb: number): string {
-  if (Math.abs(mb) >= 1000) return `${(mb / 1000).toFixed(mb >= 100_000 ? 0 : 1)} Gb`;
-  return `${Math.round(mb)} Mb`;
+  if (Math.abs(mb) >= 1000) return t('u.gb', { n: (mb / 1000).toFixed(mb >= 100_000 ? 0 : 1) });
+  return t('u.mb', { n: Math.round(mb) });
 }
 
 export function formatRate(kbps: number): string {
-  if (kbps >= 1000) return `${(kbps / 1000).toFixed(2)} Mbps`;
-  return `${kbps.toFixed(kbps < 10 ? 1 : 0)} kbps`;
+  if (kbps >= 1000) return t('u.mbps', { n: (kbps / 1000).toFixed(2) });
+  return t('u.kbps', { n: kbps.toFixed(kbps < 10 ? 1 : 0) });
 }

@@ -2,7 +2,8 @@ import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from '
 import { Fallback2D } from '@/components/Fallback2D';
 import { Panels } from '@/components/Panels';
 import { TopBar } from '@/components/TopBar';
-import { useGame } from '@/game/state/store';
+import { STAGES, useGame } from '@/game/state/store';
+import { t, useLangStore } from '@/i18n';
 import CinematicIntro from '@/scenes/CinematicIntro';
 import MissionBriefing from '@/scenes/MissionBriefing';
 import SpacecraftDesigner from '@/scenes/SpacecraftDesigner';
@@ -40,11 +41,14 @@ class WorldBoundary extends Component<{ children: ReactNode; onError: () => void
 export default function App() {
   const scene = useGame((s) => s.scene);
   const reducedMotion = useGame((s) => s.settings.reducedMotion);
+  // Subscribing here re-renders the whole interface when the language changes; no scene is
+  // remounted, so progress and on-screen state are kept.
+  const lang = useLangStore((s) => s.lang);
   const [use3d, setUse3d] = useState(webglAvailable);
 
   useEffect(() => {
-    document.title = scene === 'intro' ? 'BAIKONUR: MISSION CONTROL — The Space Mission Decision Simulator' : `BAIKONUR: MISSION CONTROL · ${scene[0].toUpperCase()}${scene.slice(1)}`;
-  }, [scene]);
+    document.title = scene === 'intro' ? t('app.title') : `BAIKONUR: MISSION CONTROL · ${STAGES.find((s) => s.id === scene)?.label ?? ''}`;
+  }, [scene, lang]);
 
   return (
     <div className={`app ${reducedMotion ? 'reduced-motion' : ''}`} data-scene={scene} data-renderer={use3d ? '3d' : '2d'}>
@@ -61,7 +65,7 @@ export default function App() {
       <div className="ui">
         <TopBar />
         <main className="scene-root" key={scene}>
-          <Suspense fallback={<div className="loading">Loading mission systems</div>}>
+          <Suspense fallback={<div className="loading">{t('app.loading')}</div>}>
             {scene === 'intro' && <CinematicIntro />}
             {scene === 'briefing' && <MissionBriefing />}
             {scene === 'designer' && <SpacecraftDesigner />}

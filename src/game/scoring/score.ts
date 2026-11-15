@@ -1,4 +1,5 @@
 import { COMPONENT_BY_ID } from '@/data/components';
+import { t } from '@/i18n';
 import { OBJECTIVE_BY_ID } from '@/data/objectives';
 import { computeBudget, type BudgetSummary } from '@/game/engine/budget';
 import { computeMass, type MassSummary } from '@/game/engine/mass';
@@ -98,19 +99,19 @@ export function evaluateMission(record: MissionRecord): MissionReport {
   const massEff = massEfficiency(mass.marginPct);
   const powerEff = powerEfficiency(sim.worstFullMarginPct);
   const efficiencyLines = [
-    { label: 'Budget efficiency', points: r1(7 * budgetEff), max: 7, detail: budget.ok ? `${budget.totalCr} of ${budget.capCr} credits · ${(scienceValue / budget.totalCr * 100).toFixed(1)} science points per 100 credits` : `Over budget by ${-budget.remainingCr} credits after launch-campaign costs` },
-    { label: 'Mass efficiency', points: r1(6 * massEff), max: 6, detail: `${Math.round(mass.wetKg)} kg on a ${mass.capacityKg} kg vehicle · ${Math.round(mass.marginPct * 100)} % unused` },
-    { label: 'Power margin', points: r1(7 * powerEff), max: 7, detail: `Lowest full-operations margin ${Math.round(sim.worstFullMarginPct * 100)} %` },
+    { label: t('score.budget_efficiency'), points: r1(7 * budgetEff), max: 7, detail: budget.ok ? t('score.of_credits_science_points_per_100', { totalCr: budget.totalCr, capCr: budget.capCr, totalCr2: (scienceValue / budget.totalCr * 100).toFixed(1) }) : t('score.over_budget_by_credits_after_launch', { remainingCr: -budget.remainingCr }) },
+    { label: t('score.mass_efficiency'), points: r1(6 * massEff), max: 6, detail: t('score.kg_on_a_kg_vehicle_unused', { wetKg: Math.round(mass.wetKg), capacityKg: mass.capacityKg, marginPct: Math.round(mass.marginPct * 100) }) },
+    { label: t('score.power_margin'), points: r1(7 * powerEff), max: 7, detail: t('score.lowest_full_operations_margin', { worstFullMarginPct: Math.round(sim.worstFullMarginPct * 100) }) },
   ];
 
   // ── Decisions ──────────────────────────────────────────────────────────────
   const decisionLines = [
-    { label: 'Launch readiness call', points: readiness.points, max: readiness.maxPoints, detail: readiness.headline },
+    { label: t('score.launch_readiness_call'), points: readiness.points, max: readiness.maxPoints, detail: readiness.headline },
     ...opsReviews.map((r) => ({
-      label: r.event === 'conjunction' ? 'Solar conjunction' : r.event === 'power' ? 'Low-power season' : 'Dust storm',
+      label: r.event === 'conjunction' ? t('score.solar_conjunction') : r.event === 'power' ? t('score.low_power_season') : t('score.dust_storm'),
       points: r.points,
       max: r.maxPoints,
-      detail: r.good ? 'Matched the situation' : 'A better option was available',
+      detail: r.good ? t('score.matched_the_situation') : t('score.a_better_option_was_available'),
     })),
   ];
 
@@ -118,46 +119,46 @@ export function evaluateMission(record: MissionRecord): MissionReport {
   const commsDelivery = sim.generatedMb > 0 ? clamp01(sim.returnedMb / sim.generatedMb) : 0;
   const availability = clamp01(effectiveDays / sim.timeline.scienceDays);
   const performanceLines = [
-    { label: 'Data returned', points: r1(8 * dataReturnFraction), max: 8, detail: `${(sim.returnedMb / 1000).toFixed(1)} Gb of ${(sim.plannedMb / 1000).toFixed(1)} Gb planned` },
-    { label: 'Communication performance', points: r1(4 * commsDelivery), max: 4, detail: `${Math.round(commsDelivery * 100)} % of collected data reached Earth` },
-    { label: 'Spacecraft availability', points: r1(3 * availability), max: 3, detail: sim.safeModeDays ? `${sim.safeModeDays} days lost in safe mode` : 'No days lost to safe mode' },
+    { label: t('score.data_returned'), points: r1(8 * dataReturnFraction), max: 8, detail: t('score.gb_of_gb_planned', { returnedMb: (sim.returnedMb / 1000).toFixed(1), plannedMb: (sim.plannedMb / 1000).toFixed(1) }) },
+    { label: t('score.communication_performance'), points: r1(4 * commsDelivery), max: 4, detail: t('score.of_collected_data_reached_earth', { commsDelivery: Math.round(commsDelivery * 100) }) },
+    { label: t('score.spacecraft_availability'), points: r1(3 * availability), max: 3, detail: sim.safeModeDays ? t('score.days_lost_in_safe_mode', { safeModeDays: sim.safeModeDays }) : t('score.no_days_lost_to_safe_mode') },
   ];
 
   const sum = (lines: { points: number }[]) => r1(lines.reduce((s, l) => s + l.points, 0));
   const categories: ScoreCategory[] = [
     {
       id: 'science',
-      label: 'Scientific value',
+      label: t('score.scientific_value'),
       points: r1(sciencePoints),
       max: SCORE_MAX.science,
-      lines: [{ label: 'Science value achieved', points: r1(sciencePoints), max: SCORE_MAX.science, detail: `${Math.round(scienceValue)} / 100 for “${objective.name}”` }],
+      lines: [{ label: t('score.science_value_achieved'), points: r1(sciencePoints), max: SCORE_MAX.science, detail: t('score.100_for', { scienceValue: Math.round(scienceValue), objective: objective.name }) }],
     },
-    { id: 'efficiency', label: 'Resource efficiency', points: sum(efficiencyLines), max: SCORE_MAX.efficiency, lines: efficiencyLines },
-    { id: 'decisions', label: 'Decision quality', points: sum(decisionLines), max: SCORE_MAX.decisions, lines: decisionLines },
-    { id: 'performance', label: 'Mission performance', points: sum(performanceLines), max: SCORE_MAX.performance, lines: performanceLines },
+    { id: 'efficiency', label: t('score.resource_efficiency'), points: sum(efficiencyLines), max: SCORE_MAX.efficiency, lines: efficiencyLines },
+    { id: 'decisions', label: t('score.decision_quality'), points: sum(decisionLines), max: SCORE_MAX.decisions, lines: decisionLines },
+    { id: 'performance', label: t('score.mission_performance'), points: sum(performanceLines), max: SCORE_MAX.performance, lines: performanceLines },
   ];
   const total = Math.round(categories.reduce((s, c) => s + c.points, 0));
 
   const tier: OutcomeTier = total >= 85 ? 'exemplary' : total >= 70 ? 'success' : total >= 50 ? 'partial' : 'not-met';
-  const tierLabel = { exemplary: 'Exemplary mission', success: 'Mission success', partial: 'Partial success', 'not-met': 'Objectives not met' }[tier];
+  const tierLabel = { exemplary: t('score.exemplary_mission'), success: t('score.mission_success'), partial: t('score.partial_success'), 'not-met': t('score.objectives_not_met') }[tier];
   const tierSummary = {
-    exemplary: 'KAZMARS-1 answered its science question, and your team’s decisions were backed by evidence at every step.',
-    success: 'KAZMARS-1 returned valuable science. A few decisions or design choices left performance on the table.',
-    partial: 'KAZMARS-1 returned some science, but design limits or decisions cost a large part of the mission’s value.',
-    'not-met': 'KAZMARS-1 could not deliver its science objective. The report below shows exactly where the mission was lost.',
+    exemplary: t('score.kazmars_1_answered_its_science_question'),
+    success: t('score.kazmars_1_returned_valuable_science_a'),
+    partial: t('score.kazmars_1_returned_some_science_but'),
+    'not-met': t('score.kazmars_1_could_not_deliver_its'),
   }[tier];
 
   const partial = { record, sim, mass, budget, readiness, opsReviews, science, scienceValue, dataReturnFraction };
   const mistakes = findMistakes(partial);
 
   const strengths: string[] = [];
-  if (readiness.verdict === 'correct') strengths.push('Your launch-readiness call matched the evidence.');
-  if (opsReviews.every((r) => r.good)) strengths.push('All three operational decisions fitted the situation.');
-  if (dataReturnFraction >= 0.97) strengths.push('Almost every planned observation reached Earth.');
-  if (budgetEff >= 0.95) strengths.push('Excellent science return for the budget spent.');
-  if (massEff === 1) strengths.push('The launch vehicle was well matched to the spacecraft.');
+  if (readiness.verdict === 'correct') strengths.push(t('score.your_launch_readiness_call_matched_the'));
+  if (opsReviews.every((r) => r.good)) strengths.push(t('score.all_three_operational_decisions_fitted_the'));
+  if (dataReturnFraction >= 0.97) strengths.push(t('score.almost_every_planned_observation_reached_earth'));
+  if (budgetEff >= 0.95) strengths.push(t('score.excellent_science_return_for_the_budget'));
+  if (massEff === 1) strengths.push(t('score.the_launch_vehicle_was_well_matched'));
   const topPart = [...science.parts].sort((a, b) => b.contribution - a.contribution)[0];
-  strengths.push(`Strongest science contribution: ${topPart.label.toLowerCase()} from the ${COMPONENT_BY_ID[design.selections.payload].short.toLowerCase()}.`);
+  strengths.push(t('score.strongest_science_contribution_from_the', { topPart: topPart.label.toLowerCase(), short: COMPONENT_BY_ID[design.selections.payload].short.toLowerCase() }));
 
   return {
     record,

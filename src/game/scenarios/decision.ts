@@ -1,4 +1,5 @@
 import type { ScenarioId } from './telemetry';
+import { t } from '@/i18n';
 
 export type EvidencePanel = 'compare' | 'raw' | 'trend';
 export type PrimaryChoice = 'hold' | 'cross' | 'proceed';
@@ -34,22 +35,19 @@ export const READINESS_MAX_POINTS = 18;
 
 export const SCENARIO_TRUTH: Record<ScenarioId, { title: string; explain: string; clue: string }> = {
   hardware: {
-    title: 'Genuine hardware anomaly',
-    explain:
-      'A slow pressurant leak in the tank. Two independent pressure sensors fell together, and the temperature dropped with them — the physical signature of escaping gas.',
-    clue: 'Independent sensors agreed, and the change persisted and grew.',
+    get title() { return t('verdict.scenario_truth.hardware.title'); },
+    get explain() { return t('verdict.scenario_truth.hardware.explain'); },
+    get clue() { return t('verdict.scenario_truth.hardware.clue'); },
   },
   'data-chain': {
-    title: 'Telemetry data-chain fault',
-    explain:
-      'The tank was healthy. After a packet-sequence reset, the ground processor applied the wrong calibration to some packets, and the link dropped, repeated and reordered others.',
-    clue: 'Raw sensor counts stayed normal while processed values jumped, and the packet log showed gaps, duplicates and out-of-order timestamps.',
+    get title() { return t('verdict.scenario_truth.data_chain.title'); },
+    get explain() { return t('verdict.scenario_truth.data_chain.explain'); },
+    get clue() { return t('verdict.scenario_truth.data_chain.clue'); },
   },
   noise: {
-    title: 'Benign sensor noise',
-    explain:
-      'A single-sample glitch on one pressure sensor. The second sensor never moved, the moving average stayed flat, and the slow temperature drift was the morning sun warming the pad.',
-    clue: 'One isolated point, no confirmation from the independent sensor, no trend.',
+    get title() { return t('verdict.scenario_truth.noise.title'); },
+    get explain() { return t('verdict.scenario_truth.noise.explain'); },
+    get clue() { return t('verdict.scenario_truth.noise.clue'); },
   },
 };
 
@@ -74,8 +72,8 @@ export function resolveReadiness(input: ReadinessInput): ReadinessOutcome {
     points: choice === 'cross' ? 2 : 0,
     verdict: 'false-negative',
     ...ABORT,
-    headline: 'Countdown stopped by the Flight Director',
-    narrative: `${how} At T−10 s the Flight Director’s independent redline monitor saw tank pressure below the launch limit and stopped the count. Nobody was at risk — that safety rule exists for exactly this. But the vehicle had to be made safe and the tank repaired: nine days and 22 credits lost.`,
+    headline: t('verdict.countdown_stopped_by_the_flight_director'),
+    narrative: t('verdict.at_t_10_s_the_flight', { how }),
   });
 
   if (choice === 'hold') {
@@ -85,10 +83,10 @@ export function resolveReadiness(input: ReadinessInput): ReadinessOutcome {
         points: informed ? 18 : viewed === 1 ? 15 : 12,
         verdict: informed ? 'correct' : 'right-thin-evidence',
         ...SCRUB_JUSTIFIED,
-        headline: 'Justified hold',
+        headline: t('verdict.justified_hold'),
         narrative: informed
-          ? 'You stopped the countdown, and the evidence backed you: two independent sensors falling together. Technicians found and fixed a leaking pressurant fitting. Launch moved three days to the backup slot.'
-          : 'You stopped the countdown and the inspection found a real leak — the right call. But you made it with little evidence; with the same information the alarm could just as easily have been false.',
+          ? t('verdict.you_stopped_the_countdown_and_the')
+          : t('verdict.you_stopped_the_countdown_and_the_2'),
       };
     }
     return {
@@ -96,11 +94,11 @@ export function resolveReadiness(input: ReadinessInput): ReadinessOutcome {
       points: informed ? 6 : 4,
       verdict: 'false-positive',
       ...SCRUB_UNNEEDED,
-      headline: 'Unnecessary hold',
+      headline: t('verdict.unnecessary_hold'),
       narrative:
         scenario === 'data-chain'
-          ? 'The hardware inspection found a perfectly healthy tank. Two days later the data team traced the alarm to the ground processing chain. The evidence to tell the difference was on your console.'
-          : 'The hardware inspection found nothing wrong. The alarm was a single noisy sample that the second sensor never confirmed. Two days and 6 credits were spent on a problem that did not exist.',
+          ? t('verdict.the_hardware_inspection_found_a_perfectly')
+          : t('verdict.the_hardware_inspection_found_nothing_wrong'),
     };
   }
 
@@ -113,12 +111,12 @@ export function resolveReadiness(input: ReadinessInput): ReadinessOutcome {
           points: 18,
           verdict: 'correct',
           ...SCRUB_JUSTIFIED,
-          headline: 'Evidence-based hold',
+          headline: t('verdict.evidence_based_hold'),
           narrative:
-            'Cross-checking showed both pressure sensors falling together with the temperature. You recommended a scrub; technicians found a leaking pressurant fitting and repaired it. Launch moved three days to the backup slot.',
+            t('verdict.cross_checking_showed_both_pressure_sensors'),
         };
       }
-      return abort('You cross-checked the data but recommended continuing, although both independent sensors showed the same falling trend.');
+      return abort(t('verdict.you_cross_checked_the_data_but'));
     }
     if (scenario === 'data-chain') {
       if (call === 'resync') {
@@ -128,9 +126,9 @@ export function resolveReadiness(input: ReadinessInput): ReadinessOutcome {
           verdict: 'correct',
           slipDays: 0,
           costCr: 0,
-          headline: 'Fault found in the data chain',
+          headline: t('verdict.fault_found_in_the_data_chain'),
           narrative:
-            'Raw counts were steady while processed values jumped, and the packet log was full of gaps and repeats. You recommended switching to the backup telemetry path. The readings cleared at once and the count resumed inside the built-in hold. No delay.',
+            t('verdict.raw_counts_were_steady_while_processed'),
         };
       }
       if (call === 'scrub') {
@@ -139,9 +137,9 @@ export function resolveReadiness(input: ReadinessInput): ReadinessOutcome {
           points: 8,
           verdict: 'false-positive',
           ...SCRUB_UNNEEDED,
-          headline: 'Careful, but the wrong conclusion',
+          headline: t('verdict.careful_but_the_wrong_conclusion'),
           narrative:
-            'You checked the evidence, then recommended a hardware scrub. The inspection found a healthy tank — the raw counts had been normal all along. Two days and 6 credits lost.',
+            t('verdict.you_checked_the_evidence_then_recommended'),
         };
       }
       return {
@@ -151,9 +149,9 @@ export function resolveReadiness(input: ReadinessInput): ReadinessOutcome {
         slipDays: 0,
         costCr: 0,
         degradedLinkDays: 30,
-        headline: 'Launched with an unfixed data fault',
+        headline: t('verdict.launched_with_an_unfixed_data_fault'),
         narrative:
-          'You judged the alarm to be harmless noise and resumed. The launch went well — but the faulty ground-processing path was never fixed, and it garbled part of the downlink for the first month at Mars.',
+          t('verdict.you_judged_the_alarm_to_be'),
       };
     }
     // noise
@@ -164,9 +162,9 @@ export function resolveReadiness(input: ReadinessInput): ReadinessOutcome {
         verdict: 'correct',
         slipDays: 0,
         costCr: 0,
-        headline: 'Noise correctly identified',
+        headline: t('verdict.noise_correctly_identified'),
         narrative:
-          'One isolated sample, no confirmation from the second sensor, a flat moving average. You recommended resuming with the channel on watch. The count continued inside the built-in hold and the readings stayed normal.',
+          t('verdict.one_isolated_sample_no_confirmation_from'),
       };
     }
     if (call === 'resync') {
@@ -176,9 +174,9 @@ export function resolveReadiness(input: ReadinessInput): ReadinessOutcome {
         verdict: 'misdiagnosed',
         slipDays: 0,
         costCr: 0,
-        headline: 'Safe call, wrong diagnosis',
+        headline: t('verdict.safe_call_wrong_diagnosis'),
         narrative:
-          'You switched to the backup telemetry path. It did no harm and the count resumed — but the packet log had been clean. The glitch came from the sensor itself, not the data chain.',
+          t('verdict.you_switched_to_the_backup_telemetry'),
       };
     }
     return {
@@ -186,14 +184,14 @@ export function resolveReadiness(input: ReadinessInput): ReadinessOutcome {
       points: 8,
       verdict: 'false-positive',
       ...SCRUB_UNNEEDED,
-      headline: 'Careful, but the wrong conclusion',
+      headline: t('verdict.careful_but_the_wrong_conclusion'),
       narrative:
-        'You checked the evidence, then recommended a hardware scrub for a single noisy sample. The inspection found nothing. Two days and 6 credits lost.',
+        t('verdict.you_checked_the_evidence_then_recommended_2'),
     };
   }
 
   // proceed
-  if (scenario === 'hardware') return abort('You continued the countdown without resolving the alarm.');
+  if (scenario === 'hardware') return abort(t('verdict.you_continued_the_countdown_without_resolving'));
   if (scenario === 'data-chain') {
     return {
       ...base,
@@ -202,9 +200,9 @@ export function resolveReadiness(input: ReadinessInput): ReadinessOutcome {
       slipDays: 0,
       costCr: 0,
       degradedLinkDays: 30,
-      headline: 'Launched — by luck, not by evidence',
+      headline: t('verdict.launched_by_luck_not_by_evidence'),
       narrative:
-        'The tank was healthy, so the launch succeeded. But nothing you knew at the time ruled out a real leak, and the faulty data path was never fixed: it garbled part of the downlink for the first month at Mars.',
+        t('verdict.the_tank_was_healthy_so_the'),
     };
   }
   return {
@@ -213,9 +211,9 @@ export function resolveReadiness(input: ReadinessInput): ReadinessOutcome {
     verdict: informed ? 'correct' : 'lucky',
     slipDays: 0,
     costCr: 0,
-    headline: informed ? 'Proceeded on good evidence' : 'Launched — by luck, not by evidence',
+    headline: informed ? t('verdict.proceeded_on_good_evidence') : t('verdict.launched_by_luck_not_by_evidence'),
     narrative: informed
-      ? 'You had looked: one isolated sample, a steady second sensor, no trend. Continuing was a defensible call, and the launch was clean. Recording that reasoning with a formal cross-check would have made it stronger still.'
-      : 'It was only sensor noise, so the launch was clean. But you did not know that when you decided — the same alarm could have been a real leak.',
+      ? t('verdict.you_had_looked_one_isolated_sample')
+      : t('verdict.it_was_only_sensor_noise_so'),
   };
 }

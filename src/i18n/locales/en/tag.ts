@@ -1,0 +1,18 @@
+export const tag = {
+  'tag.click_for_sources': '{p} — {explain} Click for sources.',
+  'tag.glossary.false_positive': 'An alarm for a problem that is not really there. It costs time and money.',
+  'tag.glossary.false_negative': 'A real problem that goes unnoticed because the warning was dismissed.',
+  'tag.glossary.sensor_noise': 'Small random jumps that every real sensor shows, even when nothing is changing.',
+  'tag.glossary.data_quality': 'How well a number survived its journey: missing, repeated or scrambled packets lower it.',
+  'tag.glossary.correlation': 'When two independent measurements rise or fall together. Agreement between them makes a real cause more likely.',
+  'tag.glossary.moving_average': 'The average of the last few readings. It smooths out single jumps so a real trend stands out.',
+  'tag.glossary.light_time': 'How long a radio signal, travelling at the speed of light, takes to cross the distance.',
+  'tag.glossary.delta_v': 'The total change in speed a spacecraft’s engine must provide. More delta-v needs more propellant.',
+  'tag.glossary.safe_mode': 'A protective state: the spacecraft switches off its instruments, points at the Sun and waits for help.',
+  'tag.glossary.solar_conjunction': 'When Mars passes behind the Sun as seen from Earth. The Sun’s hot atmosphere corrupts radio signals.',
+  'tag.glossary.aerobraking': 'Using drag from the upper atmosphere, pass after pass, to shrink an orbit without burning propellant.',
+  'tag.glossary.mb': 'Megabit: one million bits of data.',
+  'tag.glossary.gb': 'Gigabit: one thousand megabits.',
+  'tag.glossary.kbps': 'Kilobits per second: one thousand bits each second.',
+  'tag.glossary.au': 'Astronomical unit: the average Earth–Sun distance, about 149.6 million km.',
+};

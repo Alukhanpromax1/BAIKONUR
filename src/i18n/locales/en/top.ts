@@ -1,0 +1,16 @@
+export const top = {
+  'top.baikonur_mission_control': 'BAIKONUR: MISSION CONTROL',
+  'top.baikonur': 'BAIKONUR',
+  'top.mission_control': 'MISSION CONTROL',
+  'top.mission_stages': 'Mission stages',
+  'top.earth_mars_one_way_light_time': 'Earth–Mars one-way light time from NASA/JPL Horizons. Click for sources.',
+  'top.earth_mars': 'EARTH → MARS',
+  'top.live': 'LIVE',
+  'top.cached': 'CACHED',
+  'top.team': 'Team',
+  'top.data_sources': 'Data sources',
+  'top.mute_sound': 'Mute sound',
+  'top.turn_sound_on': 'Turn sound on',
+  'top.settings': 'Settings',
+  'top.team_player': 'Team: {players} player{s}',
+};

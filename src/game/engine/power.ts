@@ -1,4 +1,5 @@
 import { COMPONENT_BY_ID } from '@/data/components';
+import { t } from '@/i18n';
 import { GAME, MARS_MEAN_SUN_DISTANCE_AU, SOLAR_IRRADIANCE_1AU_W_M2 } from '@/data/constants';
 import { ORBIT_BY_ID } from '@/data/orbits';
 import type { MissionDesign, SlotId } from '@/types';
@@ -62,7 +63,7 @@ export function computePower(design: MissionDesign, distanceAu: number = MARS_ME
   const availableW = sunlitW * (1 - orbit.eclipseFraction);
   const instrumentW = COMPONENT_BY_ID[s.payload].powerW;
   const lines: PowerLine[] = [
-    { label: 'Spacecraft bus', watts: GAME.busPowerW },
+    { label: t('power.spacecraft_bus'), watts: GAME.busPowerW },
     { label: COMPONENT_BY_ID[s.payload].name, watts: instrumentW, slot: 'payload' },
     { label: COMPONENT_BY_ID[s.comms].name, watts: COMPONENT_BY_ID[s.comms].powerW, slot: 'comms' },
     { label: COMPONENT_BY_ID[s.storage].name, watts: COMPONENT_BY_ID[s.storage].powerW, slot: 'storage' },

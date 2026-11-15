@@ -1,9 +1,10 @@
+import { t } from '@/i18n';
 export type CharacterId = 'arman' | 'dana' | 'director';
 
 export const CHARACTERS: Record<CharacterId, { name: string; role: string; age?: number; accent: string }> = {
-  arman: { name: 'Arman', role: 'Systems Engineering Trainee', age: 17, accent: '#52D7E8' },
-  dana: { name: 'Dana', role: 'Telemetry & Data Engineering Trainee', age: 16, accent: '#FFB84D' },
-  director: { name: 'Flight Director', role: 'Adult supervisor · launch-safety authority', accent: '#9AA8BE' },
+  arman: { get name() { return t('crew.characters.arman.name'); }, get role() { return t('crew.characters.arman.role'); }, age: 17, accent: '#52D7E8' },
+  dana: { get name() { return t('crew.characters.dana.name'); }, get role() { return t('crew.characters.dana.role'); }, age: 16, accent: '#FFB84D' },
+  director: { get name() { return t('crew.characters.director.name'); }, get role() { return t('crew.characters.director.role'); }, accent: '#9AA8BE' },
 };
 
 /** Flat vector portraits drawn in code — no photographs or generated images. */

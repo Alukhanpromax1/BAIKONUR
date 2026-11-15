@@ -1,4 +1,6 @@
 import { ArrowRight, Battery, ChevronDown, Database, Flame, Radio, Sparkles, Telescope } from 'lucide-react';
+import { t, useLangStore } from '@/i18n';
+import { T } from '@/i18n/Trans';
 import { useEffect, useMemo, useRef } from 'react';
 import { navigate } from '@/app/navigation';
 import { sfx } from '@/audio/sound';
@@ -24,11 +26,11 @@ const SLOT_ICON: Record<SlotId, React.ReactNode> = {
 };
 
 const COACH: Record<SlotId, { who: 'arman' | 'dana'; text: string }> = {
-  payload: { who: 'dana', text: 'Pick the instrument your science question needs — then check whether the link can carry its data home.' },
-  power: { who: 'arman', text: 'Watch the power margin. Near zero is not “enough”: Mars drifts farther from the Sun during the mission.' },
-  comms: { who: 'dana', text: 'Compare the Comms meter with the Data meter. If the link carries less than the payload produces, data will be lost.' },
-  storage: { who: 'dana', text: 'In March 2028 Mars goes behind the Sun and we cannot talk to the spacecraft. The recorder has to hold everything until then.' },
-  propulsion: { who: 'arman', text: 'Bigger tanks are only worth their mass if your orbit needs the propellant. Check the Mass meter.' },
+  payload: { who: 'dana', get text() { return t('design.coach.payload.text'); } },
+  power: { who: 'arman', get text() { return t('design.coach.power.text'); } },
+  comms: { who: 'dana', get text() { return t('design.coach.comms.text'); } },
+  storage: { who: 'dana', get text() { return t('design.coach.storage.text'); } },
+  propulsion: { who: 'arman', get text() { return t('design.coach.propulsion.text'); } },
 };
 
 export function SciencePotential({ evaluation, objectiveName }: { evaluation: ReturnType<typeof evaluateDesign>; objectiveName: string }) {
@@ -36,7 +38,7 @@ export function SciencePotential({ evaluation, objectiveName }: { evaluation: Re
   return (
     <div className="science" data-testid="science-potential">
       <div className="row row--between">
-        <span className="eyebrow eyebrow--muted">Science potential · {objectiveName}</span>
+        <span className="eyebrow eyebrow--muted">{t('design.science_potential', { objectiveName })}</span>
         <span className="mono" style={{ fontSize: 18 }}>
           {Math.round(s.potential * 100)}
           <small className="muted"> /100</small>
@@ -44,7 +46,7 @@ export function SciencePotential({ evaluation, objectiveName }: { evaluation: Re
       </div>
       <div className="science__grid">
         {s.parts.map((p) => (
-          <div key={p.key} className="science__part" title={`${p.label}: quality ${Math.round(p.quality * 100)} % × importance ${Math.round(p.weight * 100)} % for this objective`}>
+          <div key={p.key} className="science__part" title={t('design.quality_importance_for_this_objective', { p: p.label, quality: Math.round(p.quality * 100), weight: Math.round(p.weight * 100) })}>
             <span className="row row--between xs">
               <span className="muted">{p.label}</span>
               <span className="mono dim">×{Math.round(p.weight * 100)}%</span>
@@ -61,15 +63,15 @@ export function SciencePotential({ evaluation, objectiveName }: { evaluation: Re
 
 function specs(o: ComponentOption): [string, string][] {
   const out: [string, string][] = [
-    ['Mass', `${o.massKg} kg`],
-    ['Power', o.slot === 'power' ? 'generates' : `${o.powerW} W`],
-    ['Cost', `${o.costCr} cr`],
+    [t('design.spec.mass'), `${o.massKg} kg`],
+    [t('design.spec.power'), o.slot === 'power' ? t('design.spec.generates') : `${o.powerW} W`],
+    [t('design.spec.cost'), `${o.costCr} cr`],
   ];
-  if (o.dataMbPerDay) out.push(['Data', `${o.dataMbPerDay} Mb/day`]);
-  if (o.arrayAreaM2) out.push(['Area', `${o.arrayAreaM2} m²`]);
-  if (o.rateKbpsAt1Au) out.push(['Rate at 1 AU', `${o.rateKbpsAt1Au} kbps`]);
-  if (o.capacityGb) out.push(['Capacity', `${o.capacityGb} Gb`]);
-  if (o.tankCapacityKg) out.push(['Tank', `${o.tankCapacityKg} kg`]);
+  if (o.dataMbPerDay) out.push([t('design.spec.data'), `${o.dataMbPerDay} Mb/day`]);
+  if (o.arrayAreaM2) out.push([t('design.spec.area'), t('u.m2', { n: o.arrayAreaM2 })]);
+  if (o.rateKbpsAt1Au) out.push([t('design.rate_at_1_au'), `${o.rateKbpsAt1Au} kbps`]);
+  if (o.capacityGb) out.push([t('design.spec.capacity'), `${o.capacityGb} Gb`]);
+  if (o.tankCapacityKg) out.push([t('design.spec.tank'), `${o.tankCapacityKg} kg`]);
   return out;
 }
 
@@ -98,7 +100,7 @@ function Callouts() {
     return () => cancelAnimationFrame(raf);
   }, []);
   return (
-    <div className="callouts" aria-label="Spacecraft subsystems">
+    <div className="callouts" aria-label={t('design.spacecraft_subsystems')}>
       {SLOTS.map((s) => (
         <button
           key={s.id}
@@ -112,7 +114,7 @@ function Callouts() {
             sfx.click();
             setActive(s.id);
           }}
-          aria-label={`Inspect ${s.label}`}
+          aria-label={t('design.inspect', { s: s.label })}
           data-testid={`callout-${s.id}`}
         >
           <span className="callout__dot" />
@@ -133,7 +135,8 @@ export default function SpacecraftDesigner() {
   const applyRecommended = useGame((s) => s.applyRecommended);
   const mode = useGame((s) => s.settings.mode);
   const players = useGame((s) => s.players);
-  const evaluation = useMemo(() => evaluateDesign(design), [design]);
+  const lang = useLangStore((s) => s.lang);
+  const evaluation = useMemo(() => evaluateDesign(design), [design, lang]);
   const ref = useReveal<HTMLDivElement>();
   const objective = OBJECTIVE_BY_ID[design.objective];
   const recommended = RECOMMENDED[design.objective];
@@ -152,29 +155,29 @@ export default function SpacecraftDesigner() {
     <div className="workbench" ref={ref}>
       <Callouts />
       <div className="workbench__head hit" data-reveal>
-        <div className="eyebrow">Design bay · {objective.name}</div>
-        <h1 className="title">Build KAZMARS-1</h1>
+        <div className="eyebrow">{t('design.design_bay', { objective: objective.name })}</div>
+        <h1 className="title">{t('design.build_kazmars_1')}</h1>
         <p className="small muted">
           {hoveredSlot ? (
             <>
-              <b className="cyan">{SLOTS.find((s) => s.id === hoveredSlot)?.label}</b> — click to configure
+              <T k="design.hover_hint" params={{ slot: SLOTS.find((s) => s.id === hoveredSlot)?.label ?? '' }} tags={{ b: (c) => <b className="cyan">{c}</b> }} />
             </>
           ) : (
-            'Drag to rotate · scroll or pinch to zoom · click a part to inspect it'
+            t('design.drag_to_rotate_scroll_or_pinch')
           )}
         </p>
         {engineer && players.length > 1 && (
           <span className="tag tag--cyan" style={{ marginTop: 6 }}>
-            Lead: {engineer.name} · {ROLES.engineer.label}
+            {t('design.lead', { engineer: engineer.name, engineer2: ROLES.engineer.label })}
           </span>
         )}
       </div>
 
       <aside className="workbench__panel panel" data-reveal>
         <div className="panel__head">
-          <span className="eyebrow eyebrow--muted">Subsystems</span>
+          <span className="eyebrow eyebrow--muted">{t('design.subsystems')}</span>
           <button type="button" className="btn btn--ghost btn--sm" onClick={() => { sfx.select(); applyRecommended(); }} disabled={isRecommended} data-testid="use-recommended">
-            <Sparkles size={13} /> {isRecommended ? 'Recommended build' : 'Use recommended'}
+            <Sparkles size={13} /> {isRecommended ? t('design.recommended_build') : t('design.use_recommended')}
           </button>
         </div>
         <div className="workbench__slots scroll">
@@ -202,7 +205,7 @@ export default function SpacecraftDesigner() {
                         <button key={o.id} type="button" className="option" aria-pressed={selected} onClick={() => choose(slot.id, o.id)} data-testid={`option-${o.id}`}>
                           <div className="option__top">
                             <span className="option__name">{o.name}</span>
-                            {mode === 'guided' && recommended[slot.id] === o.id && <span className="tag tag--cyan">Suggested</span>}
+                            {mode === 'guided' && recommended[slot.id] === o.id && <span className="tag tag--cyan">{t('design.suggested')}</span>}
                           </div>
                           <div className="small muted">{selected ? o.description : o.short}</div>
                           <div className="option__meta">
@@ -234,9 +237,9 @@ export default function SpacecraftDesigner() {
         <div className="workbench__foot stack">
           <SciencePotential evaluation={evaluation} objectiveName={objective.name} />
           <button type="button" className="btn btn--lg" onClick={() => navigate('launch')} data-testid="to-launch">
-            Plan the launch <ArrowRight size={16} />
+            {t('design.plan_the_launch')}{' '} <ArrowRight size={16} />
           </button>
-          {blocking.length > 0 && <p className="xs muted">Some limits are exceeded. You can fix them here, or by changing the rocket and orbit on the next screen.</p>}
+          {blocking.length > 0 && <p className="xs muted">{t('design.some_limits_are_exceeded_you_can')}</p>}
         </div>
       </aside>
 
@@ -244,7 +247,7 @@ export default function SpacecraftDesigner() {
         <IssueList issues={evaluation.issues} max={2} />
         <ResourceDashboard
           evaluation={evaluation}
-          context={`Checked against your current launch plan: ${VEHICLE_BY_ID[design.vehicle].name} · ${ORBIT_BY_ID[design.orbit].name} · ${DURATION_BY_ID[design.duration].name}. You confirm these next.`}
+          context={t('design.checked_against', { vehicle: VEHICLE_BY_ID[design.vehicle].name, orbit: ORBIT_BY_ID[design.orbit].name, duration: DURATION_BY_ID[design.duration].name })}
         />
       </div>
     </div>

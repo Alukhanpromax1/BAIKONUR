@@ -1,4 +1,5 @@
 import { COMPONENT_BY_ID } from '@/data/components';
+import { t } from '@/i18n';
 import { GAME } from '@/data/constants';
 import { VEHICLE_BY_ID } from '@/data/launchVehicles';
 import { DURATION_BY_ID, ORBIT_BY_ID } from '@/data/orbits';
@@ -41,12 +42,12 @@ export function computeBudget(design: MissionDesign, eventsCr = 0): BudgetSummar
   const launchCr = VEHICLE_BY_ID[design.vehicle].costCr;
   const operationsCr = operationsCostCr(design);
   const lines: BudgetLine[] = [
-    { label: 'Spacecraft bus & integration', cr: GAME.busCostCr },
+    { label: t('budget.spacecraft_bus_integration'), cr: GAME.busCostCr },
     ...componentLines,
-    { label: `Launch · ${VEHICLE_BY_ID[design.vehicle].name}`, cr: launchCr },
-    { label: 'Mission operations', cr: operationsCr },
+    { label: t('budget.launch', { vehicle: VEHICLE_BY_ID[design.vehicle].name }), cr: launchCr },
+    { label: t('budget.mission_operations'), cr: operationsCr },
   ];
-  if (eventsCr > 0) lines.push({ label: 'Launch campaign events', cr: eventsCr });
+  if (eventsCr > 0) lines.push({ label: t('budget.launch_campaign_events'), cr: eventsCr });
   const totalCr = spacecraftCr + launchCr + operationsCr + eventsCr;
   return {
     lines,
